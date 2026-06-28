@@ -1,0 +1,62 @@
+{
+  "user_identity": {
+    "name": "ستوده",
+    "age": 24,
+    "preferred_name": "ستوده",
+    "long_term_goals": [],
+    "short_term_goals": []
+  },
+
+  "psychology": {
+    "stress_triggers": [],
+    "freeze_patterns": [],
+    "avoidance_patterns": [],
+    "motivators": [],
+    "emotional_patterns": [],
+    "self_sabotage_patterns": []
+  },
+
+  "cognitive": {
+    "learning_style": "",
+    "execution_challenges": [],
+    "focus_patterns": [],
+    "task_completion_obstacles": []
+  },
+
+  "behavioral_memory": {
+    "habits_positive": [],
+    "habits_negative": [],
+    "recurring_failures": [],
+    "recurring_successes": [],
+    "study_patterns": []
+  },
+
+  "daily_state": {
+    "mood": "",
+    "energy": "",
+    "stress_level": "",
+    "current_tasks": [],
+    "blockers": [],
+    "next_actions": []
+  },
+
+  "events": {
+    "important_events": [],
+    "trauma_related_reactions": [],
+    "wins": [],
+    "setbacks": []
+  },
+
+  "task_history": {
+    "completed_tasks": [],
+    "abandoned_tasks": [],
+    "task_start_stop_patterns": []
+  },
+
+  "relationship_memory": {
+    "triggering_relationship_patterns": [],
+    "boundary_violations": [],
+    "trust_patterns": [],
+    "sensitivity_points": []
+  }
+}
