@@ -1,0 +1,14 @@
+__pycache__/
+*.pyc
+.env
+*.db
+venv/
+
+.vercel
+
+# Ignore all local env files except the checked-in template.
+.env.*
+!.env.example
+
+.vercel
+.env*

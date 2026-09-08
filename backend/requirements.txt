@@ -1,0 +1,42 @@
+fastapi==0.115.0
+uvicorn==0.32.0
+pydantic==2.9.0
+pydantic[email]==2.9.0
+
+# ── LLM client (Google Gemini via its OpenAI-compatible endpoint) ──
+openai==1.54.0
+# NOTE: pinned specifically to prevent a proxy-handling regression in newer
+# httpx releases that breaks the `openai` client's internal HTTP transport
+# (surfaces as "Client.__init__() got an unexpected keyword argument
+# 'proxies'" on some hosts). Keep this pin until the `openai` package
+# upgrades its httpx floor past the affected range.
+httpx==0.27.2
+# Official Google Gemini SDK. Not imported directly by the current call
+# sites (they use `openai.OpenAI` pointed at Gemini's OpenAI-compatible
+# endpoint, so every existing `client.chat.completions.create(...)` call
+# works unmodified) — included so a future migration to native
+# `google.generativeai` calls (streaming, function calling, etc.) doesn't
+# require a fresh dependency install.
+google-generativeai==0.8.3
+
+python-dotenv==1.0.1
+sqlalchemy==2.0.36
+
+# ─── Email (password reset / verification via Resend) ────
+resend==2.40.0
+
+# ── Database (Supabase / PostgreSQL via psycopg3) ──
+psycopg[binary]==3.2.3
+
+apscheduler==3.10.4
+
+# ── Auth (multi-user) ──
+passlib[bcrypt]==1.7.4
+bcrypt==4.0.1
+# NOTE: pinned to bcrypt 4.0.1 on purpose — passlib 1.7.4 crashes
+# (AttributeError: module 'bcrypt' has no attribute '__about__') against
+# bcrypt>=4.1, a known compatibility bug between the two libraries.
+python-jose[cryptography]==3.3.0
+
+# ── Web Push notifications (used by push_service.py) ──
+pywebpush==2.0.1
