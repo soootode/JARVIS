@@ -11,7 +11,10 @@
   "dependencies": {
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+<<<<<<< HEAD
     "react-router-dom": "^6.26.0",
+=======
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
     "framer-motion": "^11.0.0",
     "lucide-react": "^0.344.0"
   },

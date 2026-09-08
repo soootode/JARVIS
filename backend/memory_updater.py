@@ -1,6 +1,7 @@
 """
 memory_updater.py
 -----------------
+<<<<<<< HEAD
 بعد از هر مکالمه از Google Gemini (از طریق endpoint سازگار با OpenAI) می‌خواهد
 اطلاعات جدید را استخراج کند و در memory_schema ادقام کند.
 """
@@ -13,6 +14,16 @@ from typing import Optional
 # هماهنگ با MODEL توی main.py — یه‌جا از env خونده می‌شه، نه هاردکد جدا جدا.
 LLM_MODEL = os.getenv("LLM_MODEL", "gemini-3.6-flash")
 
+=======
+بعد از هر مکالمه از GapGPT (OpenAI-compatible) می‌خواهد اطلاعات جدید را استخراج کند
+و در memory_schema ادغام کند.
+"""
+
+import json
+import re
+from typing import Optional
+
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
 
 MEMORY_UPDATE_PROMPT = """
 تو یک سیستم استخراج اطلاعات هستی.
@@ -32,6 +43,10 @@ MEMORY_UPDATE_PROMPT = """
 - daily_state.mood
 - daily_state.energy
 - daily_state.stress_level
+<<<<<<< HEAD
+=======
+- daily_state.current_tasks (لیست)
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
 - daily_state.blockers (لیست)
 - psychology.stress_triggers (لیست - فقط موارد جدید)
 - psychology.motivators (لیست - فقط موارد جدید)
@@ -60,9 +75,14 @@ def extract_memory_updates(
     current_memory: dict,
 ) -> Optional[dict]:
     """
+<<<<<<< HEAD
     یک درخواست سریع به مدل (Google Gemini) می‌زند و فیلدهای به‌روز شده را برمی‌گرداند.
     client باید openai.OpenAI با base_url مربوط به Gemini باشد
     (https://generativelanguage.googleapis.com/v1beta/openai/).
+=======
+    یک GapGPT call سریع می‌زند و فیلدهای به‌روز شده را برمی‌گرداند.
+    client باید openai.OpenAI با base_url گپ‌جی‌پی‌تی باشد.
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
     """
     prompt = MEMORY_UPDATE_PROMPT.format(
         current_memory=json.dumps(current_memory, ensure_ascii=False, indent=2),
@@ -72,7 +92,11 @@ def extract_memory_updates(
 
     try:
         response = client.chat.completions.create(
+<<<<<<< HEAD
             model=LLM_MODEL,
+=======
+            model="gpt-5.3-chat-latest",
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
             messages=[
                 {
                     "role": "system",
@@ -99,6 +123,7 @@ def extract_memory_updates(
         return None
 
 
+<<<<<<< HEAD
 REFLECTION_DETECTION_PROMPT = """
 تو یک روان‌شناس تحلیل‌گر دقیق و محتاط هستی، نه یک قضاوت‌گر.
 
@@ -263,6 +288,8 @@ def extract_belief_revision(
         return None
 
 
+=======
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
 def apply_updates(memory: dict, updates: dict) -> dict:
     """
     فیلدهای جدید را روی memory اعمال می‌کند.

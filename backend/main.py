@@ -3,6 +3,7 @@ main.py - Jarvis-You Backend
 Milestone 2: SQLAlchemy + Context Snapshots + Session Management
 + DailyView / WeeklyView endpoints
 + Morning Initialization Protocol
+<<<<<<< HEAD
 + Google Gemini (via the OpenAI-compatible endpoint)
 """
 
@@ -37,11 +38,28 @@ except ModuleNotFoundError:
 load_dotenv()
 
 from fastapi import Depends, FastAPI, Header, HTTPException
+=======
++ GapGPT (OpenAI-compatible)
+"""
+
+# ── Imports ────────────────────────────────────────────────────────────────────
+import asyncio
+import json
+import os
+import uuid
+from datetime import date as date_type, datetime, timedelta
+from pathlib import Path
+from typing import Optional
+
+from dotenv import load_dotenv
+from fastapi import FastAPI, HTTPException
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
 from fastapi.middleware.cors import CORSMiddleware
 from openai import OpenAI
 from pydantic import BaseModel
 from apscheduler.schedulers.background import BackgroundScheduler
 
+<<<<<<< HEAD
 from auth import router as auth_router, get_current_user
 from memory_manager import MemoryManager
 from memory_updater import extract_memory_updates
@@ -57,10 +75,23 @@ from database import (
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("jarvis.main")
+=======
+from memory_manager import MemoryManager
+from memory_updater import extract_memory_updates
+from scheduler_service import SchedulerService
+from database import (
+    get_session, init_db,
+    DailyState, EventTask, Habit, Goal, WeeklySchedule,
+    WorkTask, Reminder, PomodoroSession,
+)
+
+load_dotenv()
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
 
 scheduler = None
 scheduler_service = None
 
+<<<<<<< HEAD
 # ── Startup validation ─────────────────────────────────────────
 
 # این سرویس از طریق همان endpoint سازگار با OpenAI که Google Gemini رسمی ارائه
@@ -86,10 +117,29 @@ MODEL = os.getenv("LLM_MODEL", "gemini-3.6-flash")
 
 # ── Cron security (Vercel Cron -> GET /api/cron/check-reminders) ─────────────
 CRON_SECRET = os.getenv("CRON_SECRET")
+=======
+# ── Startup validation ─────────────────────────────────────────────────────────
+
+GAPGPT_API_KEY = os.getenv("GAPGPT_API_KEY")
+if not GAPGPT_API_KEY:
+    raise RuntimeError(
+        "❌ GAPGPT_API_KEY در .env پیدا نشد.\n"
+        "از پنل گپ‌جی‌پی‌تی کلید API بساز.\n"
+        "سپس در .env بنویس: GAPGPT_API_KEY=your_key_here"
+    )
+
+client = OpenAI(
+    api_key=GAPGPT_API_KEY,
+    base_url="https://api.gapgpt.app/v1",
+)
+
+MODEL = "gpt-5.3-chat-latest"
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
 
 # ── App setup ──────────────────────────────────────────────────────────────────
 
 app = FastAPI(title="Jarvis-You Backend")
+<<<<<<< HEAD
 
 # FIX (multi-user): frontend origin now comes from env instead of only
 # hardcoded localhost, so a deployed frontend can actually call this API.
@@ -109,11 +159,23 @@ else:
 app.add_middleware(
     CORSMiddleware,
     allow_origins=_cors_origins,
+=======
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5173",
+        "http://localhost:3000",
+        # بعد از دیپلوی لیارا، آدرس فرانت‌اند را اینجا اضافه کن:
+        # "https://jarvis-frontend.liara.run",
+        # "https://yourdomain.ir",
+    ],
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
     allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+<<<<<<< HEAD
 app.include_router(auth_router)
 
 # FIX (multi-user): MemoryManager used to be a single global instance shared
@@ -167,11 +229,18 @@ def _today_iran() -> date_type:
 #      requests that don't need a freshly created table.
 _SKIP_DB_INIT = os.getenv("SKIP_DB_INIT", "").strip().lower() in ("1", "true", "yes")
 
+=======
+SESSION_ID = str(uuid.uuid4())
+memory_manager = MemoryManager(session_id=SESSION_ID)
+
+# ── Startup: ساخت جداول دیتابیس ───────────────────────────────────────────────
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
 
 @app.on_event("startup")
 async def startup():
     global scheduler, scheduler_service
 
+<<<<<<< HEAD
     if _SKIP_DB_INIT:
         print("⏭️  SKIP_DB_INIT is set — skipping init_db() (assuming schema is already migrated)")
     else:
@@ -194,6 +263,10 @@ async def startup():
     if os.getenv("VERCEL"):
         print("⏭️  Running on Vercel — skipping in-process scheduler (using Vercel Cron instead)")
         return
+=======
+    init_db()
+    print("✅ Database tables ready")
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
 
     try:
         scheduler_service = SchedulerService()
@@ -237,6 +310,7 @@ def load_json(path: str) -> dict:
 
 
 SYSTEM_PROMPT_BASE = load_text("system_prompt.txt", "شما یک دستیار هوشمند هستید.")
+<<<<<<< HEAD
 
 # FIX (multi-user): persona.json used to be injected verbatim into every
 # request's system prompt via a global PERSONA_JSON — but persona.json is
@@ -268,6 +342,18 @@ def build_system_prompt(memory_manager: MemoryManager) -> str:
         f"و پاسخ‌ها باید بر همین مبنا باشه، نه حدس از روی چت‌های قبلی.\n"
     )
 
+=======
+PERSONA_JSON = load_json("persona.json")
+
+
+def build_system_prompt() -> str:
+    prompt = SYSTEM_PROMPT_BASE
+    if PERSONA_JSON:
+        prompt += (
+            "\n\n---\nPROFILE DATA (اطلاعات شخصی کاربر - JSON):\n"
+            + json.dumps(PERSONA_JSON, ensure_ascii=False, indent=2)
+        )
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
     memory_context = memory_manager.get_context_for_llm()
     if memory_context and memory_context != "حافظه‌ای ثبت نشده است.":
         prompt += f"\n\n---\nVARIABLE MEMORY (وضعیت فعلی کاربر):\n{memory_context}"
@@ -377,6 +463,7 @@ class WeeklyScheduleRequest(BaseModel):
     schedule: dict
 
 
+<<<<<<< HEAD
 class OnboardingRequest(BaseModel):
     preferred_name: str
     age: int | None = None
@@ -389,6 +476,8 @@ class OnboardingRequest(BaseModel):
     motivators: list[str] = []                 # → motivators
 
 
+=======
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
 class PomodoroStartRequest(BaseModel):
     task_id: int | None = None
     duration_minutes: int = 25
@@ -402,6 +491,7 @@ class PomodoroStopRequest(BaseModel):
 # ── Helper: parse datetime string ─────────────────────────────────────────────
 
 def _parse_dt(dt_str: str | None):
+<<<<<<< HEAD
     """
     Parses an ISO-8601 datetime string into a timezone-aware `datetime`.
     FIX (Supabase/serverless migration): Reminder.reminder_at is now a
@@ -419,6 +509,12 @@ def _parse_dt(dt_str: str | None):
         if parsed.tzinfo is None:
             parsed = parsed.replace(tzinfo=timezone.utc)
         return parsed
+=======
+    if not dt_str:
+        return None
+    try:
+        return datetime.fromisoformat(dt_str)
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
     except Exception:
         return None
 
@@ -439,6 +535,7 @@ def _call_llm(
     temperature: float = 0.7,
     max_tokens: int = 1500,
 ) -> str:
+<<<<<<< HEAD
     # FIX (bug #2 — 500 on Gemini rate limit): this had zero error handling,
     # so a 429 from Gemini (quota exhausted — easy to hit on the free tier
     # under real chat volume) surfaced as an unhandled exception, which
@@ -517,12 +614,39 @@ def _get_or_create_today_state(session, user_id: int) -> DailyState:
     ).first()
     if not state:
         state = DailyState(user_id=user_id, date=today)
+=======
+    all_messages = [{"role": "system", "content": system_prompt}] + messages
+    response = client.chat.completions.create(
+        model=MODEL,
+        messages=all_messages,
+        temperature=temperature,
+        max_tokens=max_tokens,
+    )
+    return response.choices[0].message.content
+
+
+def _today_str() -> str:
+    return date_type.today().isoformat()
+
+
+def _current_week_key() -> str:
+    today = date_type.today()
+    return f"{today.year}-W{today.isocalendar()[1]:02d}"
+
+
+def _get_or_create_today_state(session) -> DailyState:
+    today = _today_str()
+    state = session.query(DailyState).filter(DailyState.date == today).first()
+    if not state:
+        state = DailyState(date=today, current_tasks=json.dumps([]))
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
         session.add(state)
         session.commit()
         session.refresh(state)
     return state
 
 
+<<<<<<< HEAD
 def _dt_iso(x):
     return x.isoformat() if x else None
 
@@ -705,6 +829,30 @@ def _seed_today_if_empty(session, user_id: int) -> None:
         hour = _first_free_hour(occupied)
         _lock_item(session, user_id, today, hour, text)
         occupied.add(hour)
+=======
+def _parse_tasks(state: DailyState) -> list[dict]:
+    raw = state.current_tasks
+    if raw is None:
+        return []
+    if isinstance(raw, str):
+        try:
+            data = json.loads(raw)
+        except Exception:
+            return []
+    else:
+        data = raw
+    result = []
+    for idx, item in enumerate(data):
+        if isinstance(item, str):
+            result.append({"id": idx + 1, "text": item, "completed": False})
+        elif isinstance(item, dict):
+            result.append(item)
+    return result
+
+
+def _save_tasks(session, state: DailyState, tasks: list[dict]):
+    state.current_tasks = json.dumps(tasks, ensure_ascii=False)
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
     session.commit()
 
 
@@ -712,6 +860,7 @@ def _dt_iso(x):
     return x.isoformat() if x else None
 
 
+<<<<<<< HEAD
 # ── Robust JSON extraction for LLM output ───────────────────────────────────
 # FIX (smart planner bug #1): Gemini's raw text output is not guaranteed to
 # be strict JSON — even after stripping ```json fences it can contain
@@ -833,6 +982,8 @@ def _recover_truncated_actions(raw: str) -> Optional[list]:
     return objects or None
 
 
+=======
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
 # FIX: updated to use correct field names matching database.py
 def worktask_to_dict(t: WorkTask):
     return {
@@ -890,6 +1041,7 @@ def pomodoro_to_dict(p: PomodoroSession):
 
 # ── Morning Initialization Protocol ───────────────────────────────────────────
 
+<<<<<<< HEAD
 async def _morning_init_if_needed(user_id: int) -> bool:
     """
     بررسی می‌کند آیا DailyState امروز برای این کاربر وجود دارد یا خیر.
@@ -904,16 +1056,90 @@ async def _morning_init_if_needed(user_id: int) -> bool:
     کاربر هیچ هدف/عادتی ثبت نکرده باشد، چند تودوی عمومی پیش‌فرض می‌گذارد.
     این لیست بعداً هم قابل ویرایش/جایگزینی توسط خود کاربر یا smart planner
     است — فقط دیگر مسیر بحرانی (critical path) چت را کند نمی‌کند.
+=======
+async def _morning_init_if_needed() -> bool:
+    """
+    بررسی می‌کند آیا DailyState امروز وجود دارد یا خیر.
+    اگر نه، تودوهای شخصی‌سازی‌شده از طریق GapGPT می‌سازد.
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
     True برمی‌گرداند اگر اولین تعامل روز بود.
     """
     session = get_session()
     try:
+<<<<<<< HEAD
         today_iso = _today_str()
         items = _load_unified_items(session, user_id, _today_iran())
         had_tasks = bool(_day_items(items, today_iso))
         if not had_tasks:
             _seed_today_if_empty(session, user_id)
         return not had_tasks
+=======
+        today = _today_str()
+        state = session.query(DailyState).filter(DailyState.date == today).first()
+
+        if state and state.current_tasks:
+            raw = state.current_tasks
+            tasks = json.loads(raw) if isinstance(raw, str) else raw
+            if tasks:
+                return False
+
+        goals = session.query(Goal).filter(Goal.status == "active").all()
+        habits = session.query(Habit).filter(Habit.is_active == True).all()
+
+        goals_text = "\n".join(
+            [f"- {g.title} ({g.category or 'عمومی'})" for g in goals]
+        ) or "هیچ هدف فعالی ثبت نشده"
+        habits_text = "\n".join(
+            [f"- {h.name} ({h.frequency})" for h in habits]
+        ) or "هیچ عادتی ثبت نشده"
+
+        system = "تو یک برنامه‌ریز هوشمند هستی. فقط JSON خالص برمی‌گردانی، بدون هیچ توضیح یا markdown."
+        user_prompt = f"""تاریخ امروز: {today}
+اهداف فعال کاربر:
+{goals_text}
+
+عادت‌های روزانه:
+{habits_text}
+
+یک لیست تودوی شخصی‌سازی‌شده برای امروز بساز.
+فقط یک آرایه JSON از رشته‌های فارسی برگردان. مثال:
+["مطالعه ۳۰ دقیقه ریاضی گسسته", "ورزش صبح", "مرور فلش‌کارت‌های زیست"]
+فقط JSON، بدون توضیح اضافه، بدون کد بلاک."""
+
+        loop = asyncio.get_event_loop()
+        raw_text = await loop.run_in_executor(
+            None,
+            lambda: _call_llm(
+                system,
+                [{"role": "user", "content": user_prompt}],
+                temperature=0.5,
+                max_tokens=500,
+            ),
+        )
+
+        raw_text = raw_text.strip().replace("```json", "").replace("```", "").strip()
+        task_list = json.loads(raw_text)
+
+        tasks_structured = [
+            {"id": idx + 1, "text": t, "completed": False}
+            for idx, t in enumerate(task_list)
+            if isinstance(t, str)
+        ]
+
+        if state:
+            state.current_tasks = json.dumps(tasks_structured, ensure_ascii=False)
+            session.commit()
+        else:
+            new_state = DailyState(
+                date=today,
+                current_tasks=json.dumps(tasks_structured, ensure_ascii=False),
+            )
+            session.add(new_state)
+            session.commit()
+
+        return True
+
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
     except Exception as e:
         print(f"⚠️ morning init failed: {e}")
         return False
@@ -923,6 +1149,7 @@ async def _morning_init_if_needed(user_id: int) -> bool:
 
 # ── Endpoints ──────────────────────────────────────────────────────────────────
 
+<<<<<<< HEAD
 # ── Onboarding (multi-user) ─────────────────────────────────────────────────
 # NOTE: this is the replacement for what seed_data.py used to do globally —
 # each new user fills this in themselves (via the frontend wizard) instead
@@ -961,11 +1188,22 @@ async def root():
     return {
         "status": "running",
         "assistant": "Jarvis-You",
+=======
+@app.get("/")
+async def root():
+    persona = memory_manager.get_persona()
+    return {
+        "status": "running",
+        "assistant": "Jarvis-You",
+        "user": persona.get("preferred_name", "کاربر"),
+        "session_id": SESSION_ID,
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
         "llm": MODEL,
     }
 
 
 @app.post("/api/chat", response_model=ChatResponse)
+<<<<<<< HEAD
 async def chat(request: ChatRequest, current_user: User = Depends(get_current_user)):
     memory_manager = MemoryManager(user_id=current_user.id, session_id=PROCESS_SESSION_ID)
     try:
@@ -1013,6 +1251,26 @@ async def chat(request: ChatRequest, current_user: User = Depends(get_current_us
                 tasks_preview = "، ".join(text for _, text in entries[:3])
             finally:
                 preview_session.close()
+=======
+async def chat(request: ChatRequest):
+    try:
+        is_morning_init = await _morning_init_if_needed()
+
+        system_prompt = build_system_prompt()
+
+        if is_morning_init:
+            session = get_session()
+            try:
+                state = session.query(DailyState).filter(
+                    DailyState.date == _today_str()
+                ).first()
+                tasks_raw = state.current_tasks if state else "[]"
+                tasks = json.loads(tasks_raw) if isinstance(tasks_raw, str) else tasks_raw
+                task_titles = [t["text"] for t in tasks if isinstance(t, dict)]
+                tasks_preview = "، ".join(task_titles[:3])
+            finally:
+                session.close()
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
 
             system_prompt += (
                 f"\n\n---\nMORNING INIT: امروز اولین تعامل روز است. "
@@ -1022,6 +1280,7 @@ async def chat(request: ChatRequest, current_user: User = Depends(get_current_us
                 "پیام کوتاه، صمیمی و محرک باشد."
             )
 
+<<<<<<< HEAD
         # ── Behavioral reflection (cognitive scaffolding) ────────────────────
         # اگه scheduler_service.py یه تناقض معنادار بین رفتار عینی کاربر و
         # پروفایل self-reported پیدا کرده باشه، اینجا فقط یک‌بار مصرفش
@@ -1034,6 +1293,8 @@ async def chat(request: ChatRequest, current_user: User = Depends(get_current_us
                 f"{pending_reflection}"
             )
 
+=======
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
         history = memory_manager.get_conversation_history()
         messages = build_chat_history(history)
         messages.append({"role": "user", "content": request.message})
@@ -1045,6 +1306,7 @@ async def chat(request: ChatRequest, current_user: User = Depends(get_current_us
         )
 
         memory_manager.add_conversation(request.message, assistant_message)
+<<<<<<< HEAD
         asyncio.create_task(_async_memory_update(current_user.id, request.message, assistant_message))
 
         # ── Smart Planner: پشت‌پرده اجرا و نتیجه به پاسخ اضافه می‌شه
@@ -1107,11 +1369,29 @@ async def chat(request: ChatRequest, current_user: User = Depends(get_current_us
         # FIX (bug #2): dedicated 429 instead of a bare 500, with a message
         # the frontend can show as-is.
         raise HTTPException(status_code=429, detail=str(e))
+=======
+        asyncio.create_task(_async_memory_update(request.message, assistant_message))
+
+        # ── Smart Planner: پشت‌پرده اجرا و نتیجه به پاسخ اضافه می‌شه
+        planner_actions = await _async_smart_planner(request.message, assistant_message)
+        if planner_actions:
+            note_lines = ["\n\n---\n📅 ثبت شد در برنامه‌ات:"]
+            for a in planner_actions:
+                if a["type"] == "daily":
+                    note_lines.append(f"• روز {a['day']} ({a['date']}): {a['text']}")
+                elif a["type"] == "weekly":
+                    note_lines.append(f"• برنامه هفتگی {a['day']} ساعت {a['hour']}: {a['text']}")
+            assistant_message += "\n".join(note_lines)
+
+        return ChatResponse(response=assistant_message, session_id=SESSION_ID)
+
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
     except Exception as e:
         print(f"🔥 ارور بک‌اند: {e}")
         raise HTTPException(status_code=500, detail=f"خطا در پردازش: {str(e)}")
 
 
+<<<<<<< HEAD
 async def _async_memory_update(user_id: int, user_msg: str, assistant_msg: str):
     loop = asyncio.get_event_loop()
     await loop.run_in_executor(None, _sync_memory_update, user_id, user_msg, assistant_msg)
@@ -1120,14 +1400,30 @@ async def _async_memory_update(user_id: int, user_msg: str, assistant_msg: str):
 def _sync_memory_update(user_id: int, user_msg: str, assistant_msg: str):
     try:
         mm = MemoryManager(user_id=user_id, session_id=PROCESS_SESSION_ID)
+=======
+async def _async_memory_update(user_msg: str, assistant_msg: str):
+    loop = asyncio.get_event_loop()
+    await loop.run_in_executor(None, _sync_memory_update, user_msg, assistant_msg)
+
+
+def _sync_memory_update(user_msg: str, assistant_msg: str):
+    try:
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
         updates = extract_memory_updates(
             client=client,
             user_message=user_msg,
             assistant_message=assistant_msg,
+<<<<<<< HEAD
             current_memory=mm.memory,
         )
         if updates:
             mm.update_memory_fields(updates)
+=======
+            current_memory=memory_manager.memory,
+        )
+        if updates:
+            memory_manager.update_memory_fields(updates)
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
             print(f"✅ memory updated: {list(updates.keys())}")
     except Exception as e:
         print(f"⚠️ memory update failed (non-critical): {e}")
@@ -1138,6 +1434,7 @@ def _sync_memory_update(user_id: int, user_msg: str, assistant_msg: str):
 PLANNER_EXTRACT_PROMPT = """
 تو یک سیستم استخراج برنامه‌ریزی هستی.
 امروز: {today} ({today_fa})
+<<<<<<< HEAD
 روزهای هفته به فارسی به ترتیب: شنبه، یکشنبه، دوشنبه، سه‌شنبه، چهارشنبه، پنجشنبه، جمعه
 
 از این مکالمه، هر task یا برنامه‌ی زمان‌بندی‌شده‌ای که هست استخراج کن — شامل
@@ -1156,10 +1453,22 @@ PLANNER_EXTRACT_PROMPT = """
 فقط بگو «کدوم روز هفته»، «چند هفته جلوتر» یا «چند روز از امروز»، کد از رویش
 تاریخ دقیق رو حساب می‌کنه (چون محاسبه‌ی دستی تاریخ توسط مدل خطاپذیره):
 
+=======
+روزهای هفته به فارسی: شنبه، یکشنبه، دوشنبه، سه‌شنبه، چهارشنبه، پنجشنبه، جمعه
+
+از این مکالمه، task یا deadline استخراج کن:
+کاربر: {user_message}
+دستیار: {assistant_message}
+
+اگر هیچ task یا deadline‌ای نیست: فقط بنویس null
+
+اگر هست، JSON زیر را برگردان:
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
 {{
   "actions": [
     {{
       "type": "daily_task",
+<<<<<<< HEAD
       "day": "سه‌شنبه",
       "week_offset": 1,
       "hour": 10,
@@ -1170,10 +1479,15 @@ PLANNER_EXTRACT_PROMPT = """
       "days_from_now": 3,
       "hour": 10,
       "text": "برای «N روز دیگه» — day/week_offset نذار"
+=======
+      "date": "YYYY-MM-DD",
+      "text": "متن تسک به فارسی"
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
     }},
     {{
       "type": "weekly_slot",
       "day": "شنبه",
+<<<<<<< HEAD
       "week_offset": 0,
       "recurring": true,
       "hour": 14,
@@ -1183,10 +1497,15 @@ PLANNER_EXTRACT_PROMPT = """
       "type": "habit",
       "hour": 7,
       "text": "عادت روزانه‌ای که هر روز تکرار می‌شه"
+=======
+      "hour": 14,
+      "text": "متن برنامه به فارسی"
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
     }}
   ]
 }}
 
+<<<<<<< HEAD
 راهنمای پر کردن "day" و "week_offset" (این دو تا همیشه با هم می‌آن، به‌جای date خام):
 - «امروز» → day = {today_fa}، week_offset = 0
 - «فردا» → day = روز بعدِ {today_fa} در چرخه‌ی هفته، week_offset = 0 (یا 1 اگه فردا از جمعه رد بشه به شنبه‌ی هفته‌ی بعد)
@@ -1220,11 +1539,21 @@ PLANNER_EXTRACT_PROMPT = """
 - اگر پیش‌نویس/برنامه‌ی «فردا» یا روزی که هنوز نرسیده را می‌بینی، همون رو هم به‌عنوان daily_task ثبت کن (نه فقط چیزهای همین امروز)
 - فقط JSON خالص یا null، بدون توضیح، بدون markdown fence (```)، بدون کاما اضافه قبل از }} یا ]
 - همه‌ی کلیدها و مقادیر رشته‌ای باید داخل دابل‌کوتیشن (") باشند، نه تک‌کوتیشن
+=======
+قوانین:
+- برای deadline (مثلاً «شنبه تکلیف شبکه دارم»): یک daily_task برای روز قبل از deadline بساز با متن «مرور و آماده‌سازی: [موضوع]» و یک weekly_slot برای روز deadline با ساعت مناسب
+- برای task امروز یا فردا: فقط daily_task
+- برای برنامه هفتگی خاص: فقط weekly_slot
+- hour باید عدد صحیح بین 7 تا 23 باشد
+- date باید از امروز به بعد باشد
+- فقط JSON خالص یا null، بدون توضیح
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
 """
 
 PERSIAN_DAYS = ["شنبه", "یکشنبه", "دوشنبه", "سه‌شنبه", "چهارشنبه", "پنجشنبه", "جمعه"]
 
 
+<<<<<<< HEAD
 def _normalize_persian(text: str) -> str:
     """
     FIX: مدل همیشه نیم‌فاصله (ZWNJ) رو رعایت نمی‌کنه — «سه‌شنبه» توی
@@ -1320,6 +1649,8 @@ def _dedup_upsert_item(session, user_id: int, d: date_type, hour_hint, text: str
     return assigned, False
 
 
+=======
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
 def _get_persian_day(d: date_type) -> str:
     wd = d.weekday()  # Mon=0..Sun=6
     mapping = {5: 0, 6: 1, 0: 2, 1: 3, 2: 4, 3: 5, 4: 6}  # Sat=شنبه
@@ -1330,6 +1661,7 @@ def _get_week_key_for_date(d: date_type) -> str:
     return f"{d.year}-W{d.isocalendar()[1]:02d}"
 
 
+<<<<<<< HEAD
 def _resolve_action_date(action: dict, today: date_type) -> Optional[date_type]:
     """
     تاریخ دقیق یک action رو محاسبه می‌کنه — به‌جای اینکه از مدل بخوایم خودش
@@ -1383,18 +1715,26 @@ def _sync_smart_planner(user_id: int, user_msg: str, assistant_msg: str) -> list
     # tasks extracted near midnight (Iran time) get filed under the wrong
     # date/weekday.
     today = _today_iran()
+=======
+def _sync_smart_planner(user_msg: str, assistant_msg: str) -> list:
+    today = date_type.today()
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
     today_fa = _get_persian_day(today)
 
     prompt = PLANNER_EXTRACT_PROMPT.format(
         today=today.isoformat(),
         today_fa=today_fa,
         user_message=user_msg,
+<<<<<<< HEAD
         # FIX: 400 chars was truncating any real multi-item schedule
         # mid-sentence (a plan with 4-5 timed items easily runs past that),
         # so the extractor either saw garbage or returned null. Gemini
         # Flash has plenty of context room — 3000 chars is generous enough
         # for a full daily/weekly plan without meaningfully raising cost.
         assistant_message=assistant_msg[:3000],
+=======
+        assistant_message=assistant_msg[:400],
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
     )
 
     try:
@@ -1405,6 +1745,7 @@ def _sync_smart_planner(user_id: int, user_msg: str, assistant_msg: str) -> list
                 {"role": "user", "content": prompt},
             ],
             temperature=0.1,
+<<<<<<< HEAD
             # FIX: 600 → 1500 → 2200. حتی 1500 هم برای پیام‌هایی با چندتا
             # آیتم (هرکدوم با day/week_offset/hour/text) گاهی وسط کار قطع
             # می‌شد — لاگ‌های واقعی همینو نشون دادن (خروجی وسط یه رشته‌ی
@@ -1439,6 +1780,15 @@ def _sync_smart_planner(user_id: int, user_msg: str, assistant_msg: str) -> list
                     f"(finish_reason={finish_reason}, len={len(raw)}): {raw[:500]!r}"
                 )
                 return []
+=======
+            max_tokens=600,
+        )
+        raw = response.choices[0].message.content.strip()
+        if raw.lower() in ("null", "none", ""):
+            return []
+        raw = raw.replace("```json", "").replace("```", "").strip()
+        data = json.loads(raw)
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
         actions = data.get("actions", [])
         if not isinstance(actions, list):
             return []
@@ -1446,6 +1796,7 @@ def _sync_smart_planner(user_id: int, user_msg: str, assistant_msg: str) -> list
         print(f"⚠️ smart planner extract failed: {e}")
         return []
 
+<<<<<<< HEAD
     return _save_smart_planner_actions(user_id, actions, today)
 
 
@@ -1738,6 +2089,70 @@ def _save_smart_planner_actions(user_id: int, actions: list, today: date_type) -
                             plan_json=json.dumps(blocks, ensure_ascii=False),
                         ))
                         done.append({"type": "proposal", "blocks": blocks})
+=======
+    done = []
+    session = get_session()
+    try:
+        for action in actions:
+            atype = action.get("type")
+            text  = action.get("text", "").strip()
+            if not text:
+                continue
+
+            if atype == "daily_task":
+                date_str = action.get("date", today.isoformat())
+                try:
+                    target_date = date_type.fromisoformat(date_str)
+                except Exception:
+                    target_date = today
+
+                state = session.query(DailyState).filter(
+                    DailyState.date == target_date.isoformat()
+                ).first()
+                if not state:
+                    state = DailyState(date=target_date.isoformat(), current_tasks=json.dumps([]))
+                    session.add(state)
+                    session.flush()
+
+                raw_tasks = state.current_tasks
+                tasks = json.loads(raw_tasks) if isinstance(raw_tasks, str) else (raw_tasks or [])
+                if not any(t.get("text") == text for t in tasks if isinstance(t, dict)):
+                    new_id = max((t["id"] for t in tasks if isinstance(t, dict)), default=0) + 1
+                    tasks.append({"id": new_id, "text": text, "completed": False})
+                    state.current_tasks = json.dumps(tasks, ensure_ascii=False)
+                    day_fa = _get_persian_day(target_date)
+                    done.append({"type": "daily", "text": text, "date": target_date.isoformat(), "day": day_fa})
+
+            elif atype == "weekly_slot":
+                day_name = action.get("day", "")
+                hour = int(action.get("hour", 9))
+                if day_name not in PERSIAN_DAYS:
+                    continue
+
+                today_idx  = PERSIAN_DAYS.index(_get_persian_day(today))
+                target_idx = PERSIAN_DAYS.index(day_name)
+                diff = target_idx - today_idx
+                if diff < 0:
+                    diff += 7
+                target_date = today + timedelta(days=diff)
+                week_key = _get_week_key_for_date(target_date)
+
+                record = session.query(WeeklySchedule).filter(
+                    WeeklySchedule.week_key == week_key
+                ).first()
+                if not record:
+                    record = WeeklySchedule(week_key=week_key, schedule_data=json.dumps({}))
+                    session.add(record)
+                    session.flush()
+
+                raw_sched = record.schedule_data
+                schedule = json.loads(raw_sched) if isinstance(raw_sched, str) else (raw_sched or {})
+                slot_key = f"{day_name}-{hour}"
+                if slot_key not in schedule:
+                    schedule[slot_key] = text
+                    record.schedule_data = json.dumps(schedule, ensure_ascii=False)
+                    done.append({"type": "weekly", "text": text, "day": day_name, "hour": hour})
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
 
         session.commit()
     except Exception as e:
@@ -1749,6 +2164,7 @@ def _save_smart_planner_actions(user_id: int, actions: list, today: date_type) -
     return done
 
 
+<<<<<<< HEAD
 async def _async_smart_planner(user_id: int, user_msg: str, assistant_msg: str) -> list:
     loop = asyncio.get_event_loop()
     return await loop.run_in_executor(None, _sync_smart_planner, user_id, user_msg, assistant_msg)
@@ -1767,6 +2183,17 @@ async def close_session(request: SessionCloseRequest, current_user: User = Depen
     try:
         mm = MemoryManager(user_id=current_user.id, session_id=PROCESS_SESSION_ID)
         mm.save_context_snapshot(
+=======
+async def _async_smart_planner(user_msg: str, assistant_msg: str) -> list:
+    loop = asyncio.get_event_loop()
+    return await loop.run_in_executor(None, _sync_smart_planner, user_msg, assistant_msg)
+
+
+@app.post("/api/session/close")
+async def close_session(request: SessionCloseRequest):
+    try:
+        memory_manager.save_context_snapshot(
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
             summary=request.summary,
             active_tasks=request.active_tasks,
             key_decisions=request.key_decisions,
@@ -1774,6 +2201,7 @@ async def close_session(request: SessionCloseRequest, current_user: User = Depen
             mood_at_end=request.mood_at_end,
             topics_discussed=request.topics_discussed,
         )
+<<<<<<< HEAD
 
         session = get_session()
         try:
@@ -1809,6 +2237,17 @@ async def update_daily_state(state: DailyStateUpdate, current_user: User = Depen
     try:
         mm = MemoryManager(user_id=current_user.id)
         mm.update_daily_state(
+=======
+        return {"status": "success", "session_id": SESSION_ID}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/memory/daily-state")
+async def update_daily_state(state: DailyStateUpdate):
+    try:
+        memory_manager.update_daily_state(
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
             mood=state.mood,
             energy=state.energy,
             stress_level=state.stress_level,
@@ -1825,6 +2264,7 @@ async def update_daily_state(state: DailyStateUpdate, current_user: User = Depen
 
 
 @app.get("/api/memory")
+<<<<<<< HEAD
 async def get_memory(current_user: User = Depends(get_current_user)):
     mm = MemoryManager(user_id=current_user.id)
     return {
@@ -1835,10 +2275,22 @@ async def get_memory(current_user: User = Depends(get_current_user)):
         "recent_events": mm.get_recent_events(limit=10),
         "active_habits": mm.get_active_habits(),
         "last_snapshot": mm.get_last_snapshot(),
+=======
+async def get_memory():
+    return {
+        "persona": memory_manager.get_persona(),
+        "psychology": memory_manager.get_psychology(),
+        "daily_state": memory_manager.get_today_state(),
+        "active_goals": memory_manager.get_active_goals(),
+        "recent_events": memory_manager.get_recent_events(limit=10),
+        "active_habits": memory_manager.get_active_habits(),
+        "last_snapshot": memory_manager.get_last_snapshot(),
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
     }
 
 
 @app.get("/api/conversation-history")
+<<<<<<< HEAD
 async def get_conversation_history(
     limit: int = 100,
     current_user: User = Depends(get_current_user),
@@ -1876,6 +2328,16 @@ async def add_event(
     try:
         mm = MemoryManager(user_id=current_user.id)
         event_id = mm.add_event(
+=======
+async def get_conversation_history():
+    return {"history": memory_manager.get_all_conversations()}
+
+
+@app.post("/api/memory/event")
+async def add_event(event_type: str, title: str, description: str = ""):
+    try:
+        event_id = memory_manager.add_event(
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
             event_type=event_type,
             title=title,
             description=description,
@@ -1892,11 +2354,17 @@ async def add_goal(
     category: str = "",
     priority: int = 5,
     timeframe: str = "mid",
+<<<<<<< HEAD
     current_user: User = Depends(get_current_user),
 ):
     try:
         mm = MemoryManager(user_id=current_user.id)
         goal_id = mm.add_goal(
+=======
+):
+    try:
+        goal_id = memory_manager.add_goal(
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
             title=title,
             description=description,
             category=category,
@@ -1909,9 +2377,14 @@ async def add_goal(
 
 
 @app.get("/api/goals")
+<<<<<<< HEAD
 async def get_goals(current_user: User = Depends(get_current_user)):
     mm = MemoryManager(user_id=current_user.id)
     return {"goals": mm.get_active_goals()}
+=======
+async def get_goals():
+    return {"goals": memory_manager.get_active_goals()}
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
 
 
 @app.post("/api/habits")
@@ -1920,11 +2393,17 @@ async def add_habit(
     habit_type: str = "positive",
     frequency: str = "daily",
     category: str = "",
+<<<<<<< HEAD
     current_user: User = Depends(get_current_user),
 ):
     try:
         mm = MemoryManager(user_id=current_user.id)
         habit_id = mm.add_habit(
+=======
+):
+    try:
+        habit_id = memory_manager.add_habit(
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
             name=name,
             habit_type=habit_type,
             frequency=frequency,
@@ -1936,6 +2415,7 @@ async def add_habit(
 
 
 @app.post("/api/habits/{habit_id}/log")
+<<<<<<< HEAD
 async def log_habit(
     habit_id: int, completed: bool = True, quality: int = None,
     current_user: User = Depends(get_current_user),
@@ -1943,6 +2423,11 @@ async def log_habit(
     try:
         mm = MemoryManager(user_id=current_user.id)
         mm.log_habit(habit_id=habit_id, completed=completed, quality=quality)
+=======
+async def log_habit(habit_id: int, completed: bool = True, quality: int = None):
+    try:
+        memory_manager.log_habit(habit_id=habit_id, completed=completed, quality=quality)
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
         return {"status": "success", "message": "عادت ثبت شد"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -1951,6 +2436,7 @@ async def log_habit(
 # ── DailyView Endpoints ────────────────────────────────────────────────────────
 
 @app.get("/api/daily/tasks")
+<<<<<<< HEAD
 async def get_daily_tasks(current_user: User = Depends(get_current_user)):
     """
     DailyView = کوئریِ «آیتم‌های امروز» روی مخزن یکپارچه (کلید «YYYY-MM-DD|HH»).
@@ -2006,12 +2492,26 @@ async def get_daily_tasks(current_user: User = Depends(get_current_user)):
             "mood": state.mood if state else None,
             "energy": state.energy if state else None,
             "notes": state.notes if state else None,
+=======
+async def get_daily_tasks():
+    session = get_session()
+    try:
+        state = _get_or_create_today_state(session)
+        tasks = _parse_tasks(state)
+        return {
+            "date": state.date,
+            "tasks": tasks,
+            "mood": state.mood,
+            "energy": state.energy,
+            "notes": state.notes,
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
         }
     finally:
         session.close()
 
 
 @app.post("/api/daily/tasks")
+<<<<<<< HEAD
 async def add_daily_task(req: NewTaskRequest, current_user: User = Depends(get_current_user)):
     """تسک سریع: همیشه در مخزن یکپارچه با تاریخ امروز قفل می‌شه — ساعتش
     خودکار اولین اسلات منطقیِ خالیه (Zero Unscheduled Policy)."""
@@ -2026,11 +2526,23 @@ async def add_daily_task(req: NewTaskRequest, current_user: User = Depends(get_c
         _lock_item(session, current_user.id, today, hour, text)
         session.commit()
         return {"status": "success", "task": {"id": hour, "text": text, "completed": False}}
+=======
+async def add_daily_task(req: NewTaskRequest):
+    session = get_session()
+    try:
+        state = _get_or_create_today_state(session)
+        tasks = _parse_tasks(state)
+        new_id = max((t["id"] for t in tasks), default=0) + 1
+        tasks.append({"id": new_id, "text": req.text, "completed": False})
+        _save_tasks(session, state, tasks)
+        return {"status": "success", "task": {"id": new_id, "text": req.text, "completed": False}}
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
     finally:
         session.close()
 
 
 @app.patch("/api/daily/tasks/{task_id}")
+<<<<<<< HEAD
 async def toggle_daily_task(
     task_id: int, req: TaskToggleRequest,
     current_user: User = Depends(get_current_user),
@@ -2088,12 +2600,29 @@ async def toggle_daily_task(
             raise HTTPException(status_code=404, detail="تسک پیدا نشد")
         _lock_item(session, current_user.id, today, task_id, target["text"], completed=req.completed)
         session.commit()
+=======
+async def toggle_daily_task(task_id: int, req: TaskToggleRequest):
+    session = get_session()
+    try:
+        state = _get_or_create_today_state(session)
+        tasks = _parse_tasks(state)
+        updated = False
+        for task in tasks:
+            if task["id"] == task_id:
+                task["completed"] = req.completed
+                updated = True
+                break
+        if not updated:
+            raise HTTPException(status_code=404, detail="تسک پیدا نشد")
+        _save_tasks(session, state, tasks)
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
         return {"status": "success", "task_id": task_id, "completed": req.completed}
     finally:
         session.close()
 
 
 @app.post("/api/daily/feedback")
+<<<<<<< HEAD
 async def save_daily_feedback(req: FeedbackRequest, current_user: User = Depends(get_current_user)):
     session = get_session()
     try:
@@ -2102,6 +2631,14 @@ async def save_daily_feedback(req: FeedbackRequest, current_user: User = Depends
         # FIX (bug #4): show the timestamp in Iran local time, not raw
         # server time (Vercel is UTC), so notes don't look off by ~3.5h.
         timestamp = _now_iran().strftime("%H:%M")
+=======
+async def save_daily_feedback(req: FeedbackRequest):
+    session = get_session()
+    try:
+        state = _get_or_create_today_state(session)
+        existing = state.notes or ""
+        timestamp = datetime.now().strftime("%H:%M")
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
         separator = "\n---\n" if existing else ""
         state.notes = f"{existing}{separator}[{timestamp}] {req.feedback}"
         session.commit()
@@ -2113,6 +2650,7 @@ async def save_daily_feedback(req: FeedbackRequest, current_user: User = Depends
 # ── WeeklyView Endpoints ───────────────────────────────────────────────────────
 
 @app.get("/api/weekly/schedule")
+<<<<<<< HEAD
 async def get_weekly_schedule(
     week_offset: int = 0,
     current_user: User = Depends(get_current_user),
@@ -2150,11 +2688,24 @@ async def get_weekly_schedule(
             "week_end": week_end,
             "schedule": schedule,
         }
+=======
+async def get_weekly_schedule():
+    session = get_session()
+    try:
+        week_key = _current_week_key()
+        record = session.query(WeeklySchedule).filter(WeeklySchedule.week_key == week_key).first()
+        if not record:
+            return {"week_key": week_key, "schedule": {}}
+        raw = record.schedule_data
+        schedule = json.loads(raw) if isinstance(raw, str) else (raw or {})
+        return {"week_key": week_key, "schedule": schedule}
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
     finally:
         session.close()
 
 
 @app.post("/api/weekly/schedule")
+<<<<<<< HEAD
 async def save_weekly_schedule(
     req: WeeklyScheduleRequest,
     week_offset: int = 0,
@@ -2201,6 +2752,21 @@ async def save_weekly_schedule(
 
         session.commit()
         return {"status": "success", "week_key": week_key, "week_offset": week_offset}
+=======
+async def save_weekly_schedule(req: WeeklyScheduleRequest):
+    session = get_session()
+    try:
+        week_key = _current_week_key()
+        record = session.query(WeeklySchedule).filter(WeeklySchedule.week_key == week_key).first()
+        schedule_json = json.dumps(req.schedule, ensure_ascii=False)
+        if record:
+            record.schedule_data = schedule_json
+        else:
+            record = WeeklySchedule(week_key=week_key, schedule_data=schedule_json)
+            session.add(record)
+        session.commit()
+        return {"status": "success", "week_key": week_key}
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
     finally:
         session.close()
 
@@ -2208,11 +2774,18 @@ async def save_weekly_schedule(
 # ── Work Tasks API ─────────────────────────────────────────────────────────────
 
 @app.post("/api/work-tasks")
+<<<<<<< HEAD
 async def create_work_task(payload: WorkTaskCreateRequest, current_user: User = Depends(get_current_user)):
     session = get_session()
     try:
         task = WorkTask(
             user_id=current_user.id,
+=======
+async def create_work_task(payload: WorkTaskCreateRequest):
+    session = get_session()
+    try:
+        task = WorkTask(
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
             title=payload.title,
             description=payload.description,
             due_at=_parse_dt(payload.due_at),
@@ -2236,6 +2809,7 @@ async def create_work_task(payload: WorkTaskCreateRequest, current_user: User = 
 
 
 @app.get("/api/work-tasks")
+<<<<<<< HEAD
 async def list_work_tasks(current_user: User = Depends(get_current_user)):
     session = get_session()
     try:
@@ -2245,12 +2819,19 @@ async def list_work_tasks(current_user: User = Depends(get_current_user)):
             .order_by(WorkTask.created_at.desc())
             .all()
         )
+=======
+async def list_work_tasks():
+    session = get_session()
+    try:
+        tasks = session.query(WorkTask).order_by(WorkTask.created_at.desc()).all()
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
         return {"ok": True, "tasks": [worktask_to_dict(t) for t in tasks]}
     finally:
         session.close()
 
 
 @app.patch("/api/work-tasks/{task_id}")
+<<<<<<< HEAD
 async def update_work_task(
     task_id: int, payload: WorkTaskUpdateRequest,
     current_user: User = Depends(get_current_user),
@@ -2259,6 +2840,13 @@ async def update_work_task(
     try:
         task = session.get(WorkTask, task_id)
         if not task or task.user_id != current_user.id:
+=======
+async def update_work_task(task_id: int, payload: WorkTaskUpdateRequest):
+    session = get_session()
+    try:
+        task = session.get(WorkTask, task_id)
+        if not task:
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
             return {"ok": False, "error": "Task not found"}
         updates = payload.model_dump(exclude_unset=True)
         if "due_at" in updates:
@@ -2279,11 +2867,18 @@ async def update_work_task(
 # ── Reminders API ──────────────────────────────────────────────────────────────
 
 @app.post("/api/reminders")
+<<<<<<< HEAD
 async def create_reminder(payload: ReminderCreateRequest, current_user: User = Depends(get_current_user)):
     session = get_session()
     try:
         reminder = Reminder(
             user_id=current_user.id,
+=======
+async def create_reminder(payload: ReminderCreateRequest):
+    session = get_session()
+    try:
+        reminder = Reminder(
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
             title=payload.title,
             message=payload.message,
             reminder_at=_parse_dt(payload.reminder_at),  # FIX: correct field name
@@ -2304,6 +2899,7 @@ async def create_reminder(payload: ReminderCreateRequest, current_user: User = D
 
 
 @app.get("/api/reminders")
+<<<<<<< HEAD
 async def list_reminders(current_user: User = Depends(get_current_user)):
     session = get_session()
     try:
@@ -2313,12 +2909,19 @@ async def list_reminders(current_user: User = Depends(get_current_user)):
             .order_by(Reminder.reminder_at.asc())
             .all()
         )
+=======
+async def list_reminders():
+    session = get_session()
+    try:
+        reminders = session.query(Reminder).order_by(Reminder.reminder_at.asc()).all()
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
         return {"ok": True, "reminders": [reminder_to_dict(r) for r in reminders]}
     finally:
         session.close()
 
 
 @app.patch("/api/reminders/{reminder_id}")
+<<<<<<< HEAD
 async def update_reminder(
     reminder_id: int, payload: ReminderUpdateRequest,
     current_user: User = Depends(get_current_user),
@@ -2327,6 +2930,13 @@ async def update_reminder(
     try:
         rem = session.get(Reminder, reminder_id)
         if not rem or rem.user_id != current_user.id:
+=======
+async def update_reminder(reminder_id: int, payload: ReminderUpdateRequest):
+    session = get_session()
+    try:
+        rem = session.get(Reminder, reminder_id)
+        if not rem:
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
             return {"ok": False, "error": "Reminder not found"}
         updates = payload.model_dump(exclude_unset=True)
         if "reminder_at" in updates:
@@ -2346,17 +2956,28 @@ async def update_reminder(
 # ── Pomodoro Engine API ────────────────────────────────────────────────────────
 
 @app.post("/api/pomodoro/start")
+<<<<<<< HEAD
 async def start_pomodoro(payload: PomodoroStartRequest, current_user: User = Depends(get_current_user)):
+=======
+async def start_pomodoro(payload: PomodoroStartRequest):
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
     session = get_session()
     try:
         if payload.task_id:
             task = session.get(WorkTask, payload.task_id)
+<<<<<<< HEAD
             if not task or task.user_id != current_user.id:
+=======
+            if not task:
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
                 return {"ok": False, "error": "Task not found"}
 
         now = datetime.now()
         new_session = PomodoroSession(
+<<<<<<< HEAD
             user_id=current_user.id,
+=======
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
             task_id=payload.task_id,
             session_type=payload.session_type,
             start_time=now,
@@ -2373,6 +2994,7 @@ async def start_pomodoro(payload: PomodoroStartRequest, current_user: User = Dep
 
 
 @app.post("/api/pomodoro/stop/{pomodoro_id}")
+<<<<<<< HEAD
 async def stop_pomodoro(
     pomodoro_id: int, payload: PomodoroStopRequest,
     current_user: User = Depends(get_current_user),
@@ -2381,6 +3003,13 @@ async def stop_pomodoro(
     try:
         p_session = session.get(PomodoroSession, pomodoro_id)
         if not p_session or p_session.user_id != current_user.id:
+=======
+async def stop_pomodoro(pomodoro_id: int, payload: PomodoroStopRequest):
+    session = get_session()
+    try:
+        p_session = session.get(PomodoroSession, pomodoro_id)
+        if not p_session:
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
             return {"ok": False, "error": "Session not found"}
 
         p_session.actual_end_time = datetime.now()
@@ -2405,6 +3034,7 @@ async def stop_pomodoro(
 
 
 @app.get("/api/pomodoro/active")
+<<<<<<< HEAD
 async def get_active_pomodoro(current_user: User = Depends(get_current_user)):
     session = get_session()
     try:
@@ -2412,18 +3042,32 @@ async def get_active_pomodoro(current_user: User = Depends(get_current_user)):
             PomodoroSession.user_id == current_user.id,
             PomodoroSession.status == "active",
         ).first()
+=======
+async def get_active_pomodoro():
+    session = get_session()
+    try:
+        active = session.query(PomodoroSession).filter(PomodoroSession.status == "active").first()
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
         return {"ok": True, "active_session": pomodoro_to_dict(active) if active else None}
     finally:
         session.close()
 
 # ── Notification Endpoints ─────────────────────────────────────────────────────
+<<<<<<< HEAD
 
 @app.get("/api/notifications/pending")
 async def get_pending_notifications(current_user: User = Depends(get_current_user)):
+=======
+# این دو endpoint را به main.py اضافه کن (قبل از if __name__ == "__main__")
+
+@app.get("/api/notifications/pending")
+async def get_pending_notifications():
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
     """
     فرانت‌اند هر 30 ثانیه این endpoint را poll می‌کنه.
     یادآورهایی که sent=False هستن و زمانشون رسیده برمی‌گرده.
     """
+<<<<<<< HEAD
     # FIX (Supabase/serverless migration): Reminder.reminder_at is now
     # timezone-aware (TIMESTAMPTZ), so `now` must be aware too.
     now = datetime.now(timezone.utc)
@@ -2431,6 +3075,12 @@ async def get_pending_notifications(current_user: User = Depends(get_current_use
     try:
         pending = session.query(Reminder).filter(
             Reminder.user_id == current_user.id,
+=======
+    now = datetime.now()
+    session = get_session()
+    try:
+        pending = session.query(Reminder).filter(
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
             Reminder.sent == False,
             Reminder.reminder_at <= now
         ).order_by(Reminder.reminder_at.asc()).all()
@@ -2454,22 +3104,34 @@ async def get_pending_notifications(current_user: User = Depends(get_current_use
 
 
 @app.post("/api/notifications/{reminder_id}/dismiss")
+<<<<<<< HEAD
 async def dismiss_notification(reminder_id: int, current_user: User = Depends(get_current_user)):
+=======
+async def dismiss_notification(reminder_id: int):
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
     """
     فرانت‌اند بعد از نمایش نوتیف این را صدا می‌زنه تا دوباره نیاد.
     """
     session = get_session()
     try:
         r = session.get(Reminder, reminder_id)
+<<<<<<< HEAD
         if not r or r.user_id != current_user.id:
             return {"ok": False, "error": "not found"}
         r.sent = True
         r.sent_at = datetime.now(timezone.utc)
+=======
+        if not r:
+            return {"ok": False, "error": "not found"}
+        r.sent = True
+        r.sent_at = datetime.now()
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
         session.commit()
         return {"ok": True}
     finally:
         session.close()
 
+<<<<<<< HEAD
 
 # ── Cron Endpoint (Vercel Cron) ─────────────────────────────────────────────
 
@@ -2543,6 +3205,8 @@ async def cron_check_reminders(authorization: Optional[str] = Header(default=Non
         "processed_ids": processed_ids,
     }
 
+=======
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
 # ── Run ────────────────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":

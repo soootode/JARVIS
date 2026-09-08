@@ -1,13 +1,19 @@
 import logging
+<<<<<<< HEAD
 import os
 from datetime import datetime, timezone
 from database import get_session, Reminder, PomodoroSession, WorkTask, User
 from memory_manager import MemoryManager
 from push_service import dispatch_reminder_notifications
+=======
+from datetime import datetime
+from database import get_session, Reminder, PomodoroSession, WorkTask
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("SchedulerService")
 
+<<<<<<< HEAD
 # ── LLM client برای تشخیص reflection ─────────────────────────────────────────
 # جدا از main.py ساخته می‌شه (نه import شده) تا وابستگی دوری بین این دو فایل
 # پیش نیاد. اگه GOOGLE_API_KEY نباشه، client خالی می‌مونه و
@@ -27,6 +33,8 @@ try:
 except Exception as e:
     logger.warning(f"LLM client برای reflection راه‌اندازی نشد (fallback به قوانین دستی): {e}")
 
+=======
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
 
 class SchedulerService:
     def __init__(self):
@@ -45,6 +53,7 @@ class SchedulerService:
         finally:
             session.close()
 
+<<<<<<< HEAD
         # جدا از تراکنش بالا اجرا می‌شه چون MemoryManager خودش session باز
         # می‌کنه؛ خطای یک کاربر نباید بقیه رو متوقف کنه.
         # این job هر ۶۰ ثانیه صدا زده می‌شه (چون run_all برای یادآورها هر
@@ -85,6 +94,11 @@ class SchedulerService:
         # tz-aware too — otherwise SQLAlchemy/psycopg would compare an aware
         # column against a naive parameter.
         now = datetime.now(timezone.utc)
+=======
+    def _check_and_send_reminders(self, session):
+        """بررسی و ارسال یادآورهای زمان‌رسیده."""
+        now = datetime.utcnow()
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
         # FIX: field renamed from is_sent → sent, and remind_at → reminder_at
         reminders = session.query(Reminder).filter(
             Reminder.sent == False,
@@ -93,10 +107,13 @@ class SchedulerService:
 
         for reminder in reminders:
             self.logger.info(f"ارسال یادآور: {reminder.title}")
+<<<<<<< HEAD
             try:
                 dispatch_reminder_notifications(reminder)
             except Exception as e:
                 self.logger.error(f"ارسال پوش‌نوتیفیکیشن برای یادآور {reminder.id} شکست خورد: {e}")
+=======
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
             # FIX: field renamed from is_sent → sent
             reminder.sent = True
             reminder.sent_at = now

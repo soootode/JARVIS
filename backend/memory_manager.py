@@ -7,13 +7,20 @@ from __future__ import annotations
 
 import json
 import uuid
+<<<<<<< HEAD
 from datetime import date, datetime, timedelta, timezone
+=======
+from datetime import date, datetime
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
 from typing import Any, Dict, List, Optional
 
 from sqlalchemy import desc, func
 
 from database import (
+<<<<<<< HEAD
     BeliefRevision,
+=======
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
     ContextSnapshot,
     Conversation,
     DailyState,
@@ -23,6 +30,7 @@ from database import (
     HabitLog,
     Persona,
     Psychology,
+<<<<<<< HEAD
     TaskSlot,
     WorkTask,
     get_session,
@@ -44,6 +52,13 @@ def _today_iran_str() -> str:
     وابسته نیست (وگرنه import چرخه‌ای می‌شد).
     """
     return (datetime.now(timezone.utc) + IRAN_UTC_OFFSET).date().isoformat()
+=======
+    get_session,
+    init_db,
+)
+
+MAX_HISTORY_FOR_LLM = 20
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
 
 
 # ── JSON helper (SQLite/PostgreSQL سازگار) ─────────────────────────────────────
@@ -77,6 +92,7 @@ def _dumps(val: Any) -> Any:
 class MemoryManager:
     """
     رابط اصلی برای همه عملیات حافظه Jarvis-You.
+<<<<<<< HEAD
 
     FIX (multi-user): این کلاس قبلاً global و singleton بود — یک instance
     برای کل سرور با یک `session_id` تصادفی که هیچ ارتباطی با "کاربر" نداشت.
@@ -105,18 +121,34 @@ class MemoryManager:
         # this (`init_db()` in its startup block, guarded by SKIP_DB_INIT).
         # Do NOT re-add an init_db() call here.
         self.user_id: int = user_id
+=======
+    هر instance یک session_id دارد که تاریخچه مکالمه جاری را نگه می‌دارد.
+    """
+
+    def __init__(self, session_id: Optional[str] = None) -> None:
+        init_db()
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
         self.session_id: str = session_id or str(uuid.uuid4())
         self._ensure_singleton_rows()
 
     # ── Bootstrap ──────────────────────────────────────────────────────────────
 
     def _ensure_singleton_rows(self) -> None:
+<<<<<<< HEAD
         """Persona و Psychology باید به‌ازای هر کاربر یک ردیف داشته باشند."""
         with get_session() as session:
             if not session.query(Persona).filter_by(user_id=self.user_id).first():
                 session.add(Persona(user_id=self.user_id))
             if not session.query(Psychology).filter_by(user_id=self.user_id).first():
                 session.add(Psychology(user_id=self.user_id))
+=======
+        """Persona و Psychology باید همیشه یک ردیف با id=1 داشته باشند."""
+        with get_session() as session:
+            if not session.get(Persona, 1):
+                session.add(Persona(id=1))
+            if not session.get(Psychology, 1):
+                session.add(Psychology(id=1))
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
             session.commit()
 
     # ══════════════════════════════════════════════════════════════════════════
@@ -127,7 +159,11 @@ class MemoryManager:
 
     def get_persona(self) -> Dict[str, Any]:
         with get_session() as session:
+<<<<<<< HEAD
             p = session.query(Persona).filter_by(user_id=self.user_id).first()
+=======
+            p = session.get(Persona, 1)
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
             if not p:
                 return {}
             return {
@@ -151,9 +187,15 @@ class MemoryManager:
         """
         _json_fields = {"languages", "core_values"}
         with get_session() as session:
+<<<<<<< HEAD
             p = session.query(Persona).filter_by(user_id=self.user_id).first()
             if not p:
                 p = Persona(user_id=self.user_id)
+=======
+            p = session.get(Persona, 1)
+            if not p:
+                p = Persona(id=1)
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
                 session.add(p)
             for key, val in kwargs.items():
                 if hasattr(p, key):
@@ -164,7 +206,11 @@ class MemoryManager:
 
     def get_psychology(self) -> Dict[str, Any]:
         with get_session() as session:
+<<<<<<< HEAD
             ps = session.query(Psychology).filter_by(user_id=self.user_id).first()
+=======
+            ps = session.get(Psychology, 1)
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
             if not ps:
                 return {}
             return {
@@ -191,7 +237,11 @@ class MemoryManager:
         if field not in _list_fields:
             return
         with get_session() as session:
+<<<<<<< HEAD
             ps = session.query(Psychology).filter_by(user_id=self.user_id).first()
+=======
+            ps = session.get(Psychology, 1)
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
             if not ps:
                 return
             current: list = _loads(getattr(ps, field)) or []
@@ -206,7 +256,11 @@ class MemoryManager:
             "cognitive_biases", "coping_strategies", "procrastination_patterns",
         }
         with get_session() as session:
+<<<<<<< HEAD
             ps = session.query(Psychology).filter_by(user_id=self.user_id).first()
+=======
+            ps = session.get(Psychology, 1)
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
             if not ps:
                 return
             for key, val in kwargs.items():
@@ -214,6 +268,7 @@ class MemoryManager:
                     setattr(ps, key, _dumps(val) if key in _json_fields else val)
             session.commit()
 
+<<<<<<< HEAD
     # ── Behavioral reflection (cognitive scaffolding) ────────────────────────
     # این بخش دقیقاً همون نقطه‌کوری رو هدف می‌گیره که خودآگاهی (خوداظهاری در
     # onboarding و چت) هیچوقت با رفتار واقعی سنجیده نمی‌شه. اینجا داده‌ی
@@ -532,6 +587,8 @@ class MemoryManager:
                 for r in rows
             ]
 
+=======
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
     # ── Goals ──────────────────────────────────────────────────────────────────
 
     def add_goal(
@@ -547,7 +604,10 @@ class MemoryManager:
         """هدف جدید اضافه می‌کند و id را برمی‌گرداند."""
         with get_session() as session:
             g = Goal(
+<<<<<<< HEAD
                 user_id=self.user_id,
+=======
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
                 title=title,
                 description=description,
                 category=category,
@@ -566,7 +626,11 @@ class MemoryManager:
         with get_session() as session:
             goals = (
                 session.query(Goal)
+<<<<<<< HEAD
                 .filter(Goal.user_id == self.user_id, Goal.status == "active")
+=======
+                .filter(Goal.status == "active")
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
                 .order_by(Goal.priority)
                 .all()
             )
@@ -586,8 +650,11 @@ class MemoryManager:
     def update_goal_progress(self, goal_id: int, progress_percent: float) -> None:
         with get_session() as session:
             g = session.get(Goal, goal_id)
+<<<<<<< HEAD
             if g and g.user_id != self.user_id:
                 return  # not this user's goal
+=======
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
             if g:
                 g.progress_percent = progress_percent
                 if progress_percent >= 100:
@@ -613,11 +680,19 @@ class MemoryManager:
         notes: Optional[str] = None,
     ) -> None:
         """وضعیت امروز را ایجاد یا به‌روز می‌کند."""
+<<<<<<< HEAD
         today = _today_iran_str()
         with get_session() as session:
             ds = session.query(DailyState).filter_by(user_id=self.user_id, date=today).first()
             if not ds:
                 ds = DailyState(user_id=self.user_id, date=today)
+=======
+        today = date.today().isoformat()
+        with get_session() as session:
+            ds = session.query(DailyState).filter_by(date=today).first()
+            if not ds:
+                ds = DailyState(date=today)
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
                 session.add(ds)
             if mood is not None: ds.mood = mood
             if energy is not None: ds.energy = energy
@@ -632,9 +707,15 @@ class MemoryManager:
             session.commit()
 
     def get_today_state(self) -> Dict[str, Any]:
+<<<<<<< HEAD
         today = _today_iran_str()
         with get_session() as session:
             ds = session.query(DailyState).filter_by(user_id=self.user_id, date=today).first()
+=======
+        today = date.today().isoformat()
+        with get_session() as session:
+            ds = session.query(DailyState).filter_by(date=today).first()
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
             if not ds:
                 return {}
             return {
@@ -653,7 +734,10 @@ class MemoryManager:
         with get_session() as session:
             rows = (
                 session.query(DailyState)
+<<<<<<< HEAD
                 .filter(DailyState.user_id == self.user_id)
+=======
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
                 .order_by(desc(DailyState.date))
                 .limit(days)
                 .all()
@@ -662,10 +746,15 @@ class MemoryManager:
                 {
                     "date": r.date, "mood": r.mood, "energy": r.energy,
                     "stress_level": r.stress_level,
+<<<<<<< HEAD
+=======
+                    "current_tasks": _loads(r.current_tasks) or [],
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
                 }
                 for r in reversed(rows)
             ]
 
+<<<<<<< HEAD
     # ── Tasks (منبع حقیقت = TaskSlot، نه DailyState.current_tasks) ─────────────
     # FIX (معماری): قبلاً «تسک‌های امروز» که به مدل تزریق می‌شد از
     # DailyState.current_tasks می‌آمد — ستونی که فقط با یک LLM extraction
@@ -685,6 +774,8 @@ class MemoryManager:
             )
             return [{"text": r.text, "completed": bool(r.completed), "hour": r.hour} for r in rows]
 
+=======
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
     # ── Events & Tasks ─────────────────────────────────────────────────────────
 
     def add_event(
@@ -700,7 +791,10 @@ class MemoryManager:
     ) -> int:
         with get_session() as session:
             e = EventTask(
+<<<<<<< HEAD
                 user_id=self.user_id,
+=======
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
                 event_type=event_type,
                 title=title,
                 description=description,
@@ -717,7 +811,11 @@ class MemoryManager:
 
     def get_recent_events(self, limit: int = 10, event_type: Optional[str] = None) -> List[Dict[str, Any]]:
         with get_session() as session:
+<<<<<<< HEAD
             q = session.query(EventTask).filter(EventTask.user_id == self.user_id).order_by(desc(EventTask.occurred_at))
+=======
+            q = session.query(EventTask).order_by(desc(EventTask.occurred_at))
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
             if event_type:
                 q = q.filter(EventTask.event_type == event_type)
             rows = q.limit(limit).all()
@@ -749,7 +847,10 @@ class MemoryManager:
     ) -> int:
         with get_session() as session:
             h = Habit(
+<<<<<<< HEAD
                 user_id=self.user_id,
+=======
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
                 name=name,
                 description=description,
                 habit_type=habit_type,
@@ -770,10 +871,16 @@ class MemoryManager:
         quality: Optional[int] = None,
         notes: str = "",
     ) -> None:
+<<<<<<< HEAD
         today = _today_iran_str()
         with get_session() as session:
             log = HabitLog(
                 user_id=self.user_id,
+=======
+        today = date.today().isoformat()
+        with get_session() as session:
+            log = HabitLog(
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
                 habit_id=habit_id,
                 date=today,
                 completed=completed,
@@ -784,8 +891,11 @@ class MemoryManager:
             session.add(log)
             # به‌روزرسانی streak
             habit = session.get(Habit, habit_id)
+<<<<<<< HEAD
             if habit and habit.user_id != self.user_id:
                 habit = None  # not this user's habit
+=======
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
             if habit:
                 if completed:
                     habit.streak_current += 1
@@ -797,7 +907,11 @@ class MemoryManager:
 
     def get_active_habits(self) -> List[Dict[str, Any]]:
         with get_session() as session:
+<<<<<<< HEAD
             habits = session.query(Habit).filter_by(user_id=self.user_id, is_active=True).all()
+=======
+            habits = session.query(Habit).filter_by(is_active=True).all()
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
             return [
                 {
                     "id": h.id,
@@ -826,14 +940,20 @@ class MemoryManager:
         with get_session() as session:
             session.add_all([
                 Conversation(
+<<<<<<< HEAD
                     user_id=self.user_id,
+=======
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
                     session_id=self.session_id,
                     role="user",
                     content=user_message,
                     model_used=model_used,
                 ),
                 Conversation(
+<<<<<<< HEAD
                     user_id=self.user_id,
+=======
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
                     session_id=self.session_id,
                     role="assistant",
                     content=assistant_message,
@@ -847,7 +967,10 @@ class MemoryManager:
         with get_session() as session:
             rows = (
                 session.query(Conversation)
+<<<<<<< HEAD
                 .filter(Conversation.user_id == self.user_id)
+=======
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
                 .order_by(desc(Conversation.id))
                 .limit(limit)
                 .all()
@@ -856,12 +979,16 @@ class MemoryManager:
 
     def get_all_conversations(self) -> List[Dict[str, Any]]:
         with get_session() as session:
+<<<<<<< HEAD
             rows = (
                 session.query(Conversation)
                 .filter(Conversation.user_id == self.user_id)
                 .order_by(Conversation.id)
                 .all()
             )
+=======
+            rows = session.query(Conversation).order_by(Conversation.id).all()
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
             return [
                 {
                     "id": r.id,
@@ -873,6 +1000,7 @@ class MemoryManager:
                 for r in rows
             ]
 
+<<<<<<< HEAD
     def get_recent_conversations(self, limit: int = 100) -> List[Dict[str, Any]]:
         """
         برای صفحه‌ی چت: آخرین `limit` پیام (پیش‌فرض ۱۰۰) رو برمی‌گردونه تا
@@ -900,6 +1028,8 @@ class MemoryManager:
                 for r in reversed(rows)
             ]
 
+=======
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
     # ── Context Snapshots ──────────────────────────────────────────────────────
 
     def save_context_snapshot(
@@ -918,12 +1048,19 @@ class MemoryManager:
         with get_session() as session:
             count = (
                 session.query(func.count(Conversation.id))
+<<<<<<< HEAD
                 .filter_by(user_id=self.user_id, session_id=self.session_id)
+=======
+                .filter_by(session_id=self.session_id)
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
                 .scalar()
                 or 0
             )
             snap = ContextSnapshot(
+<<<<<<< HEAD
                 user_id=self.user_id,
+=======
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
                 session_id=self.session_id,
                 summary=summary,
                 active_tasks=_dumps(active_tasks or []),
@@ -944,10 +1081,14 @@ class MemoryManager:
         with get_session() as session:
             snap = (
                 session.query(ContextSnapshot)
+<<<<<<< HEAD
                 .filter(
                     ContextSnapshot.user_id == self.user_id,
                     ContextSnapshot.session_id != self.session_id,
                 )
+=======
+                .filter(ContextSnapshot.session_id != self.session_id)
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
                 .order_by(desc(ContextSnapshot.created_at))
                 .first()
             )
@@ -972,6 +1113,7 @@ class MemoryManager:
     def get_context_for_llm(self) -> str:
         """
         یک رشته فارسی می‌سازد که شامل وضعیت فعلی کاربر است.
+<<<<<<< HEAD
         این رشته به system prompt اضافه می‌شود — یعنی این تابع سر هر پیامِ
         چت صدا زده می‌شه.
 
@@ -1092,6 +1234,79 @@ class MemoryManager:
                     parts.append(f"[سؤال‌های باز]: {', '.join(open_questions)}")
 
             return "\n".join(parts) if parts else "حافظه‌ای ثبت نشده است."
+=======
+        این رشته به system prompt اضافه می‌شود.
+        """
+        parts: List[str] = []
+
+        # ── Persona ──
+        persona = self.get_persona()
+        if persona.get("preferred_name"):
+            parts.append(f"نام کاربر: {persona['preferred_name']}")
+        if persona.get("age"):
+            parts.append(f"سن: {persona['age']}")
+        if persona.get("occupation"):
+            parts.append(f"شغل/حوزه: {persona['occupation']}")
+        if persona.get("mbti"):
+            parts.append(f"MBTI: {persona['mbti']}")
+
+        # ── Daily State امروز ──
+        ds = self.get_today_state()
+        if ds:
+            if ds.get("mood"):     parts.append(f"حال و هوا: {ds['mood']}")
+            if ds.get("energy"):   parts.append(f"انرژی: {ds['energy']}")
+            if ds.get("stress_level"): parts.append(f"استرس: {ds['stress_level']}")
+            if ds.get("current_tasks"):
+                tasks_list = ds["current_tasks"]
+                task_texts = [
+                    t["text"] if isinstance(t, dict) else str(t)
+                    for t in tasks_list
+                ]
+                parts.append(f"وظایف امروز: {', '.join(task_texts)}")
+            if ds.get("blockers"):
+                blockers_list = ds["blockers"]
+                blocker_texts = [
+                    b["text"] if isinstance(b, dict) else str(b)
+                    for b in blockers_list
+                ]
+                parts.append(f"موانع: {', '.join(blocker_texts)}")
+
+        # ── Psychology ──
+        psych = self.get_psychology()
+        if psych.get("stress_triggers"):
+            parts.append(f"محرک‌های استرس: {', '.join(psych['stress_triggers'][-3:])}")
+        if psych.get("motivators"):
+            parts.append(f"انگیزه‌دهنده‌ها: {', '.join(psych['motivators'][-3:])}")
+
+        # ── اهداف فعال ──
+        goals = self.get_active_goals()
+        if goals:
+            top = goals[:3]
+            goals_str = " | ".join(
+                f"{g['title']} ({g['progress_percent']:.0f}%)" for g in top
+            )
+            parts.append(f"اهداف فعال: {goals_str}")
+
+        # ── رویدادهای اخیر ──
+        recent_wins = self.get_recent_events(limit=2, event_type="win")
+        if recent_wins:
+            parts.append(f"موفقیت‌های اخیر: {', '.join(e['title'] for e in recent_wins)}")
+
+        recent_setbacks = self.get_recent_events(limit=2, event_type="setback")
+        if recent_setbacks:
+            parts.append(f"چالش‌های اخیر: {', '.join(e['title'] for e in recent_setbacks)}")
+
+        # ── Snapshot سشن قبلی ──
+        snap = self.get_last_snapshot()
+        if snap:
+            parts.append(f"\n[خلاصه آخرین گفتگو]: {snap['summary']}")
+            if snap.get("active_tasks"):
+                parts.append(f"[تسک‌های باز از سشن قبل]: {', '.join(snap['active_tasks'])}")
+            if snap.get("open_questions"):
+                parts.append(f"[سؤال‌های باز]: {', '.join(snap['open_questions'])}")
+
+        return "\n".join(parts) if parts else "حافظه‌ای ثبت نشده است."
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
 
     # ══════════════════════════════════════════════════════════════════════════
     # Legacy API (سازگاری با main.py فعلی)
@@ -1104,6 +1319,7 @@ class MemoryManager:
         """
         daily = updates.get("daily_state", {})
         if daily:
+<<<<<<< HEAD
             # FIX (معماری): "current_tasks" دیگر از این مسیر نوشته نمی‌شود.
             # این مسیر یک LLM جدا و مستقل (memory_updater.extract_memory_updates)
             # بود که از روی متن آزاد چت حدس می‌زد کاربر چه تسک‌هایی دارد —
@@ -1111,10 +1327,16 @@ class MemoryManager:
             # صفحات Daily/Weekly هر دو رویش می‌نویسند). نگه‌داشتن این مسیر
             # یعنی دو "حقیقت" مستقل برای یک مفهوم، که دقیقاً علت ناهماهنگیِ
             # قبلی بین چت و صفحه‌ی Daily بود.
+=======
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
             self.update_daily_state(
                 mood=daily.get("mood"),
                 energy=daily.get("energy"),
                 stress_level=daily.get("stress_level"),
+<<<<<<< HEAD
+=======
+                current_tasks=daily.get("current_tasks"),
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
                 blockers=daily.get("blockers"),
             )
 

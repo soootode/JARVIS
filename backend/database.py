@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import json
 import os
 from contextlib import contextmanager
@@ -21,12 +22,34 @@ from sqlalchemy import (
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
 from sqlalchemy.pool import NullPool
+=======
+import os
+from contextlib import contextmanager
+from datetime import datetime
+from sqlalchemy import (
+    create_engine,
+    Column,
+    Integer,
+    String,
+    Text,
+    DateTime,
+    Float,
+    Boolean,
+    BigInteger,
+    JSON,
+)
+from sqlalchemy.orm import sessionmaker, DeclarativeBase
+from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy import event
+
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
 
 # -----------------------------------------------------------------------------
 # Database URL / Engine
 # -----------------------------------------------------------------------------
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./jarvis.db")
 
+<<<<<<< HEAD
 # Normalize legacy/ambiguous Postgres URL schemes so we always end up on the
 # psycopg3 driver ("postgresql+psycopg://"), which is what's installed via
 # `psycopg[binary]` in requirements.txt:
@@ -80,6 +103,24 @@ engine = create_engine(DATABASE_URL, **_engine_kwargs)
 # SQLite pragmas for better integrity/concurrency
 if _IS_SQLITE:
 
+=======
+# Normalize legacy postgres URL scheme if needed
+if DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+
+_IS_SQLITE = DATABASE_URL.startswith("sqlite")
+_IS_POSTGRES = DATABASE_URL.startswith("postgresql") or DATABASE_URL.startswith("postgres")
+
+engine = create_engine(
+    DATABASE_URL,
+    echo=False,
+    future=True,
+    pool_pre_ping=True,
+)
+
+# SQLite pragmas for better integrity/concurrency
+if _IS_SQLITE:
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
     @event.listens_for(engine, "connect")
     def _set_sqlite_pragma(dbapi_connection, connection_record):
         cursor = dbapi_connection.cursor()
@@ -89,7 +130,10 @@ if _IS_SQLITE:
         finally:
             cursor.close()
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
 SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
 
 
@@ -123,6 +167,7 @@ def _json_col(nullable=True, default=None):
 
 
 # -----------------------------------------------------------------------------
+<<<<<<< HEAD
 # Cross-database JSON (de)serialization helpers
 # -----------------------------------------------------------------------------
 # `_json_col()` columns are JSONB on PostgreSQL (already parsed/serialized by
@@ -167,13 +212,21 @@ def json_dump_for_db(value):
 # -----------------------------------------------------------------------------
 
 
+=======
+# Session helpers
+# -----------------------------------------------------------------------------
+
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
 class _SessionWrapper:
     """
     Wraps a SQLAlchemy Session so it works both as a plain object
     (session = get_session()) and as a context manager
     (with get_session() as session:).
     """
+<<<<<<< HEAD
 
+=======
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
     def __init__(self, session):
         self._session = session
 
@@ -202,6 +255,7 @@ def get_session():
 
 
 # -----------------------------------------------------------------------------
+<<<<<<< HEAD
 # User (multi-user auth)
 # -----------------------------------------------------------------------------
 class User(Base):
@@ -230,11 +284,14 @@ class User(Base):
 
 
 # -----------------------------------------------------------------------------
+=======
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
 # Existing Models
 # -----------------------------------------------------------------------------
 class Persona(Base):
     __tablename__ = "persona"
 
+<<<<<<< HEAD
     # FIX (multi-user): was `id = Column(Integer, primary_key=True, default=1)`,
     # a hardcoded singleton row shared by the whole app. Now one row per user.
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -242,6 +299,9 @@ class Persona(Base):
         Integer, ForeignKey("users.id", ondelete="CASCADE"), unique=True,
         nullable=False, index=True,
     )
+=======
+    id = Column(Integer, primary_key=True, default=1)
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
     preferred_name = Column(String(100), nullable=True)
     age = Column(Integer, nullable=True)
     gender = Column(String(50), nullable=True)
@@ -260,12 +320,16 @@ class Persona(Base):
 class Psychology(Base):
     __tablename__ = "psychology"
 
+<<<<<<< HEAD
     # FIX (multi-user): same singleton -> per-user change as Persona above.
     id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(
         Integer, ForeignKey("users.id", ondelete="CASCADE"), unique=True,
         nullable=False, index=True,
     )
+=======
+    id = Column(Integer, primary_key=True, default=1)
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
     stress_triggers = _json_col(nullable=True, default=list)
     motivators = _json_col(nullable=True, default=list)
     fear_patterns = _json_col(nullable=True, default=list)
@@ -277,6 +341,7 @@ class Psychology(Base):
     procrastination_patterns = _json_col(nullable=True, default=list)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
+<<<<<<< HEAD
     # ── Behavioral reflection (cognitive scaffolding) ───────────────────────
     # این دو فیلد اضافه شدن که پروفایل خوداظهاری (بالا) دیگه صرفاً append-only
     # نباشه. یک job دوره‌ای (scheduler_service.py) رفتار واقعی کاربر رو
@@ -314,12 +379,17 @@ class BeliefRevision(Base):
     confidence = Column(String(20), nullable=True)  # low / medium / high — چقدر LLM مطمئنه این واقعاً یه تغییر باوره
     created_at = Column(DateTime, default=datetime.utcnow)
 
+=======
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
 
 class Goal(Base):
     __tablename__ = "goals"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
+<<<<<<< HEAD
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+=======
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
     title = Column(String(300), nullable=False)
     description = Column(Text, nullable=True)
     category = Column(String(100), nullable=True)
@@ -336,6 +406,7 @@ class Goal(Base):
 class DailyState(Base):
     __tablename__ = "daily_states"
 
+<<<<<<< HEAD
     # FIX: the previous version of this file dropped `current_tasks` with a
     # comment claiming it had been migrated to WorkTask. It hadn't — main.py
     # and memory_manager.py both still read/write `state.current_tasks` and
@@ -348,6 +419,10 @@ class DailyState(Base):
     # in the entire system could ever have a "2026-08-06" row. Uniqueness is
     # now per-user via the UniqueConstraint below.
     date = Column(String(10), nullable=False)
+=======
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    date = Column(String(10), unique=True, nullable=False)
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
     mood = Column(String(100), nullable=True)
     energy = Column(String(100), nullable=True)
     stress_level = Column(String(100), nullable=True)
@@ -360,23 +435,33 @@ class DailyState(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
+<<<<<<< HEAD
     __table_args__ = (UniqueConstraint("user_id", "date", name="uq_daily_state_user_date"),)
 
+=======
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
 
 class EventTask(Base):
     __tablename__ = "events_tasks"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
+<<<<<<< HEAD
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+=======
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
     event_type = Column(String(100), nullable=False)  # win, setback, milestone, task
     title = Column(String(300), nullable=False)
     description = Column(Text, nullable=True)
     impact_level = Column(Integer, default=5)
     emotion = Column(String(100), nullable=True)
     lesson_learned = Column(Text, nullable=True)
+<<<<<<< HEAD
     related_goal_id = Column(
         Integer, ForeignKey("goals.id", ondelete="SET NULL"), nullable=True
     )
+=======
+    related_goal_id = Column(Integer, nullable=True)  # soft link to goals
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
     tags = _json_col(nullable=True, default=list)
     occurred_at = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
@@ -386,7 +471,10 @@ class Habit(Base):
     __tablename__ = "habits"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
+<<<<<<< HEAD
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+=======
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
     name = Column(String(200), nullable=False)
     description = Column(Text, nullable=True)
     habit_type = Column(String(50), default="positive")
@@ -404,12 +492,16 @@ class HabitLog(Base):
     __tablename__ = "habit_logs"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
+<<<<<<< HEAD
     # Denormalized alongside habit_id (rather than joining through Habit) so
     # habit-log queries can be scoped to a user without an extra join.
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     habit_id = Column(
         Integer, ForeignKey("habits.id", ondelete="CASCADE"), nullable=False
     )
+=======
+    habit_id = Column(Integer, nullable=False)  # soft FK to habits
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
     date = Column(String(10), nullable=False)
     completed = Column(Boolean, default=True)
     count = Column(Integer, default=1)
@@ -426,7 +518,10 @@ class Conversation(Base):
         primary_key=True,
         autoincrement=True,
     )
+<<<<<<< HEAD
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+=======
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
     session_id = Column(String(100), index=True, nullable=True)
     role = Column(String(20), nullable=False)  # user, assistant, system
     content = Column(Text, nullable=False)
@@ -439,7 +534,10 @@ class ContextSnapshot(Base):
     __tablename__ = "context_snapshots"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
+<<<<<<< HEAD
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+=======
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
     session_id = Column(String(100), index=True, nullable=False)
     summary = Column(Text, nullable=False)
     active_tasks = _json_col(nullable=True, default=list)
@@ -452,6 +550,7 @@ class ContextSnapshot(Base):
 
 
 class WeeklySchedule(Base):
+<<<<<<< HEAD
     """
     LEGACY (پیش از معماری TaskSlot): یک بلاب JSON در سطح هر هفته که همه‌ی
     اسلات‌های آن هفته (کلید «YYYY-MM-DD|HH») را در یک ستون نگه می‌داشت.
@@ -475,10 +574,17 @@ class WeeklySchedule(Base):
     # FIX (multi-user): was `unique=True` globally (same bug class as
     # DailyState.date) — every user would collide on the same ISO week.
     week_key = Column(String(20), index=True, nullable=False)
+=======
+    __tablename__ = "weekly_schedule"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    week_key = Column(String(20), unique=True, index=True, nullable=False)
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
     schedule_data = _json_col(nullable=True, default=dict)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
+<<<<<<< HEAD
     __table_args__ = (UniqueConstraint("user_id", "week_key", name="uq_weekly_schedule_user_week"),)
 
 
@@ -514,6 +620,8 @@ class TaskSlot(Base):
         UniqueConstraint("user_id", "date", "hour", name="uq_task_slot_user_date_hour"),
     )
 
+=======
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
 
 # -----------------------------------------------------------------------------
 # New Models: WorkTask, Reminder, PomodoroSession
@@ -522,6 +630,7 @@ class WorkTask(Base):
     __tablename__ = "work_tasks"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
+<<<<<<< HEAD
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     title = Column(String(300), nullable=False)
     description = Column(Text, nullable=True)
@@ -529,6 +638,14 @@ class WorkTask(Base):
     scheduled_date = Column(String(10), nullable=True)  # YYYY-MM-DD
     scheduled_day = Column(String(30), nullable=True)  # e.g. Monday
     scheduled_hour = Column(String(20), nullable=True)  # e.g. 14:30
+=======
+    title = Column(String(300), nullable=False)
+    description = Column(Text, nullable=True)
+
+    scheduled_date = Column(String(10), nullable=True)    # YYYY-MM-DD
+    scheduled_day = Column(String(30), nullable=True)     # e.g. Monday
+    scheduled_hour = Column(String(20), nullable=True)    # e.g. 14:30
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
 
     # FIX: renamed from due_at to match scheduler/main usage; kept as nullable
     due_at = Column(DateTime, nullable=True)
@@ -537,6 +654,7 @@ class WorkTask(Base):
     completed_pomodoros = Column(Integer, default=0)
     current_progress = Column(Float, default=0.0)
 
+<<<<<<< HEAD
     difficulty = Column(Integer, default=1)  # FIX: int to match Pydantic model
     cognitive_load = Column(Float, default=0.0)  # FIX: float to match Pydantic model
     cognitive_intensity = Column(Float, default=0.0)  # FIX: float
@@ -550,6 +668,15 @@ class WorkTask(Base):
     status = Column(
         String(50), default="pending"
     )  # pending, in_progress, completed, blocked
+=======
+    difficulty = Column(Integer, default=1)               # FIX: int to match Pydantic model
+    cognitive_load = Column(Float, default=0.0)           # FIX: float to match Pydantic model
+    cognitive_intensity = Column(Float, default=0.0)      # FIX: float
+    mental_fatigue = Column(Float, default=0.0)           # FIX: renamed from mental_fatigue_estimate, float
+    focus_requirements = Column(String(50), nullable=True) # FIX: renamed from focus_requirement
+
+    status = Column(String(50), default="pending")        # pending, in_progress, completed, blocked
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
     is_blocked = Column(Boolean, default=False)
 
     # FIX: renamed from 'metadata' (reserved word in SQLAlchemy declarative API)
@@ -559,6 +686,7 @@ class WorkTask(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
 
+<<<<<<< HEAD
 def apply_pomodoro_completion(task: "WorkTask") -> None:
     """Shared logic for crediting a completed *focus* pomodoro to its task.
 
@@ -577,15 +705,21 @@ def apply_pomodoro_completion(task: "WorkTask") -> None:
     )
 
 
+=======
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
 class Reminder(Base):
     __tablename__ = "reminders"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
+<<<<<<< HEAD
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+=======
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
     title = Column(String(300), nullable=False)
     message = Column(Text, nullable=False)
 
     reminder_type = Column(String(50), nullable=False, default="general")
+<<<<<<< HEAD
     related_task_id = Column(
         Integer, ForeignKey("work_tasks.id", ondelete="SET NULL"), nullable=True
     )
@@ -606,6 +740,17 @@ class Reminder(Base):
     # on this exact field name.
     sent = Column(Boolean, default=False, index=True)
     sent_at = Column(DateTime(timezone=True), nullable=True)
+=======
+    related_task_id = Column(Integer, nullable=True)        # soft link to WorkTask
+    related_weekly_slot = Column(String(100), nullable=True)
+
+    # FIX: renamed from remind_at to reminder_at to match main.py / Pydantic models
+    reminder_at = Column(DateTime, nullable=False, index=True)
+
+    # FIX: renamed from is_sent to sent to match main.py usage
+    sent = Column(Boolean, default=False, index=True)
+    sent_at = Column(DateTime, nullable=True)
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
 
     priority = Column(Integer, default=1)
     language = Column(String(10), default="fa")
@@ -623,6 +768,7 @@ class PomodoroSession(Base):
     __tablename__ = "pomodoro_sessions"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
+<<<<<<< HEAD
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     task_id = Column(
         Integer, ForeignKey("work_tasks.id", ondelete="SET NULL"), nullable=True
@@ -637,11 +783,23 @@ class PomodoroSession(Base):
     status = Column(
         String(50), nullable=False, default="pending"
     )  # pending, active, completed, cancelled, paused
+=======
+    task_id = Column(Integer, nullable=True)  # soft link to WorkTask
+
+    session_type = Column(String(20), nullable=False, default="focus")  # focus / break
+    start_time = Column(DateTime, nullable=False)
+    end_time = Column(DateTime, nullable=True)          # FIX: nullable — set on stop
+    actual_end_time = Column(DateTime, nullable=True)
+
+    duration_minutes = Column(Integer, nullable=False, default=25)
+    status = Column(String(50), nullable=False, default="pending")  # pending, active, completed, cancelled, paused
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
 
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
 
+<<<<<<< HEAD
 class PendingPlan(Base):
     """
     پیشنهادهای «تجزیه‌ی شناختی» که smart planner توی چت مطرح می‌کنه و منتظر
@@ -806,3 +964,10 @@ def init_db():
                 print("✅ Users table auto-migrated successfully (SQLite).")
     except Exception as e:
         print(f"⚠️ Auto-migration notice: {e}")
+=======
+# -----------------------------------------------------------------------------
+# DB Init Helpers
+# -----------------------------------------------------------------------------
+def init_db():
+    Base.metadata.create_all(bind=engine)
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9

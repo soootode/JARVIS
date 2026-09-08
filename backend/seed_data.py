@@ -1,5 +1,6 @@
 """
 seed_data.py - Jarvis-You
+<<<<<<< HEAD
 تزریق داده‌های شخصی از persona.json به حساب یک کاربر مشخص در دیتابیس.
 
 FIX (multi-user): این اسکریپت قبلاً persona.json را در یک ردیف global
@@ -18,6 +19,15 @@ import argparse
 import json
 from datetime import datetime, timedelta
 from database import init_db, get_session, User, Persona, Psychology, Goal, Habit
+=======
+تزریق داده‌های اولیه از persona.json به دیتابیس
+ایمن در برابر اجرای چندباره (Upsert منطق)
+"""
+
+import json
+from datetime import datetime, timedelta
+from database import init_db, get_session, Persona, Psychology, Goal, Habit
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
 
 # ── رنگ‌بندی ترمینال ──────────────────────────────────────────────────────────
 GREEN  = "\033[92m"
@@ -42,16 +52,27 @@ def log_skip(msg: str):
 # ۱. Persona
 # ══════════════════════════════════════════════════════════════════════════════
 
+<<<<<<< HEAD
 def seed_persona(db, user_id: int) -> None:
+=======
+def seed_persona(db) -> None:
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
     log_section("لایه ۱ · Persona (هویت)")
 
     identity = DATA["identity"]
     background = identity.get("background", {})
 
+<<<<<<< HEAD
     existing = db.query(Persona).filter_by(user_id=user_id).first()
     is_new = existing is None
 
     p = existing or Persona(user_id=user_id)
+=======
+    existing = db.get(Persona, 1)
+    is_new = existing is None
+
+    p = existing or Persona(id=1)
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
     p.preferred_name   = identity.get("preferred_name", "ستوده")
     p.age              = identity.get("age", 24)
     p.gender           = "زن"
@@ -79,7 +100,11 @@ def seed_persona(db, user_id: int) -> None:
 # ۲. Psychology
 # ══════════════════════════════════════════════════════════════════════════════
 
+<<<<<<< HEAD
 def seed_psychology(db, user_id: int) -> None:
+=======
+def seed_psychology(db) -> None:
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
     log_section("لایه ۱ · Psychology (پروفایل روان‌شناختی)")
 
     psych_data   = DATA.get("psychological_profile", {})
@@ -87,9 +112,15 @@ def seed_psychology(db, user_id: int) -> None:
     core         = DATA.get("core_personality", {})
     motivational = DATA.get("motivational_system", {})
 
+<<<<<<< HEAD
     existing = db.query(Psychology).filter_by(user_id=user_id).first()
     is_new   = existing is None
     ps       = existing or Psychology(user_id=user_id)
+=======
+    existing = db.get(Psychology, 1)
+    is_new   = existing is None
+    ps       = existing or Psychology(id=1)
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
 
     ps.stress_triggers = json.dumps(
         psych_data.get("emotional_triggers", []), ensure_ascii=False
@@ -228,14 +259,22 @@ GOAL_SPECS = [
 ]
 
 
+<<<<<<< HEAD
 def seed_goals(db, user_id: int) -> None:
+=======
+def seed_goals(db) -> None:
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
     log_section("لایه ۱ · Goals (اهداف)")
 
     now = datetime.utcnow()
     created = updated = 0
 
     for title, category, priority, timeframe, offset_days, milestones in GOAL_SPECS:
+<<<<<<< HEAD
         existing = db.query(Goal).filter_by(user_id=user_id, title=title).first()
+=======
+        existing = db.query(Goal).filter_by(title=title).first()
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
 
         if existing:
             existing.category         = category
@@ -249,7 +288,10 @@ def seed_goals(db, user_id: int) -> None:
             updated += 1
         else:
             g = Goal(
+<<<<<<< HEAD
                 user_id=user_id,
+=======
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
                 title=title,
                 category=category,
                 priority=priority,
@@ -312,13 +354,21 @@ HABIT_SPECS = [
 ]
 
 
+<<<<<<< HEAD
 def seed_habits(db, user_id: int) -> None:
+=======
+def seed_habits(db) -> None:
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
     log_section("لایه ۲ · Habits (عادت‌ها)")
 
     created = updated = 0
 
     for name, habit_type, frequency, target_count, category, description in HABIT_SPECS:
+<<<<<<< HEAD
         existing = db.query(Habit).filter_by(user_id=user_id, name=name).first()
+=======
+        existing = db.query(Habit).filter_by(name=name).first()
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
 
         if existing:
             existing.habit_type   = habit_type
@@ -332,7 +382,10 @@ def seed_habits(db, user_id: int) -> None:
             updated += 1
         else:
             h = Habit(
+<<<<<<< HEAD
                 user_id=user_id,
+=======
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
                 name=name,
                 description=description,
                 habit_type=habit_type,
@@ -354,12 +407,20 @@ def seed_habits(db, user_id: int) -> None:
 # Main Runner
 # ══════════════════════════════════════════════════════════════════════════════
 
+<<<<<<< HEAD
 def run_seed(email: str) -> None:
     print(f"\n{BOLD}{'═'*52}")
     print("  Jarvis-You · Seed Data (per-user)")
     print(f"{'═'*52}{RESET}")
     print(f"  زمان اجرا : {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print(f"  کاربر     : {email}")
+=======
+def run_seed() -> None:
+    print(f"\n{BOLD}{'═'*52}")
+    print("  Jarvis-You · Seed Data")
+    print(f"{'═'*52}{RESET}")
+    print(f"  زمان اجرا : {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
 
     # ── بارگذاری persona.json ──────────────────────────────────────────────
     import os
@@ -380,6 +441,7 @@ def run_seed(email: str) -> None:
     # ── Seed با تراکنش ─────────────────────────────────────────────────────
     db = get_session()
     try:
+<<<<<<< HEAD
         user = db.query(User).filter_by(email=email.lower()).first()
         if not user:
             print(f"\n  ❌ کاربری با ایمیل {email} پیدا نشد.")
@@ -397,6 +459,16 @@ def run_seed(email: str) -> None:
         db.commit()
         print(f"\n{BOLD}{GREEN}{'═'*52}")
         print(f"  ✅ Seed کامل شد — حساب {email} آماده است")
+=======
+        seed_persona(db)
+        seed_psychology(db)
+        seed_goals(db)
+        seed_habits(db)
+
+        db.commit()
+        print(f"\n{BOLD}{GREEN}{'═'*52}")
+        print("  ✅ Seed کامل شد — دیتابیس آماده است")
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
         print(f"{'═'*52}{RESET}\n")
 
     except Exception as e:
@@ -410,6 +482,7 @@ def run_seed(email: str) -> None:
 
 
 if __name__ == "__main__":
+<<<<<<< HEAD
     parser = argparse.ArgumentParser(
         description="پروفایل شخصی persona.json را روی یک حساب کاربری مشخص seed می‌کند."
     )
@@ -419,3 +492,6 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
     run_seed(args.email)
+=======
+    run_seed()
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9

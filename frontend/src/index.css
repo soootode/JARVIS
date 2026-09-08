@@ -1,5 +1,9 @@
 /* src/index.css */
+<<<<<<< HEAD
 @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&display=swap');
+=======
+@import url('https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css');
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
 
 @tailwind base;
 @tailwind components;
@@ -11,6 +15,7 @@
   box-sizing: border-box;
 }
 
+<<<<<<< HEAD
 html {
   -webkit-text-size-adjust: 100%;
 }
@@ -28,6 +33,10 @@ button,
 input,
 textarea {
   font-family: inherit;
+=======
+body {
+  font-family: 'Vazirmatn', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
 }
 
 @layer utilities {
@@ -39,6 +48,7 @@ textarea {
     scrollbar-width: none;
   }
 }
+<<<<<<< HEAD
 
 /* ── اسکرول‌بار مینیمال و تیره ── */
 
@@ -72,3 +82,5 @@ textarea {
 *::-webkit-scrollbar-corner {
   background: transparent;
 }
+=======
+>>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
