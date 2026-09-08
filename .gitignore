@@ -70,3 +70,8 @@ node_modules/
 dist/
 __pycache__/
 venv/
+
+*.rar
+*.zip
+*.7z
+*.tar.gz
