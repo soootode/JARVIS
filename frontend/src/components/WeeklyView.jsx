@@ -1,7 +1,6 @@
 // src/components/WeeklyView.jsx
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-<<<<<<< HEAD
 import { apiFetch } from '../lib/apiClient';
 import { X, Check, ChevronRight, ChevronLeft, CalendarDays, Sparkles } from 'lucide-react';
 
@@ -33,19 +32,10 @@ const localTodayISO = () => {
 // به‌صورت overlay ثابت رندر می‌شود تا هیچ‌وقت باعث اسکرول یا جابه‌جایی
 // گرید پشت سر نشود.
 const CellEditorModal = ({ contextLabel, initialValue, onSave, onCancel }) => {
-=======
-import { X, Check } from 'lucide-react';
-
-const API_BASE = 'http://localhost:8000';
-
-// ── Inline cell editor (جایگزین prompt()) ────────────────────────────────────
-const CellEditor = ({ initialValue, onSave, onCancel }) => {
->>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
   const [value, setValue] = useState(initialValue || '');
   const inputRef = useRef(null);
 
   useEffect(() => {
-<<<<<<< HEAD
     const t = requestAnimationFrame(() => {
       inputRef.current?.focus();
       inputRef.current?.select();
@@ -55,20 +45,12 @@ const CellEditor = ({ initialValue, onSave, onCancel }) => {
 
   const handleKeyDown = (e) => {
     e.stopPropagation();
-=======
-    inputRef.current?.focus();
-    inputRef.current?.select();
-  }, []);
-
-  const handleKeyDown = (e) => {
->>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
     if (e.key === 'Enter') onSave(value.trim());
     if (e.key === 'Escape') onCancel();
   };
 
   return (
     <motion.div
-<<<<<<< HEAD
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -122,36 +104,6 @@ const CellEditor = ({ initialValue, onSave, onCancel }) => {
           </button>
         </div>
       </motion.div>
-=======
-      initial={{ scale: 0.9, opacity: 0 }}
-      animate={{ scale: 1, opacity: 1 }}
-      exit={{ scale: 0.9, opacity: 0 }}
-      className="absolute inset-0 z-40 bg-white rounded-lg shadow-xl border-2 border-purple-400 p-1 flex flex-col gap-1"
-      onClick={(e) => e.stopPropagation()}
-    >
-      <input
-        ref={inputRef}
-        value={value}
-        onChange={(e) => setValue(e.target.value)}
-        onKeyDown={handleKeyDown}
-        placeholder="متن برنامه..."
-        className="flex-1 text-xs px-2 py-1 rounded border border-slate-200 focus:outline-none focus:ring-1 focus:ring-purple-400 text-slate-700"
-      />
-      <div className="flex gap-1 justify-end">
-        <button
-          onClick={onCancel}
-          className="p-1 rounded hover:bg-slate-100 text-slate-400 hover:text-slate-600"
-        >
-          <X size={12} />
-        </button>
-        <button
-          onClick={() => onSave(value.trim())}
-          className="p-1 rounded bg-purple-500 hover:bg-purple-600 text-white"
-        >
-          <Check size={12} />
-        </button>
-      </div>
->>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
     </motion.div>
   );
 };
@@ -159,7 +111,6 @@ const CellEditor = ({ initialValue, onSave, onCancel }) => {
 const WeeklyView = () => {
   const [tasks, setTasks] = useState({});
   const [loading, setLoading] = useState(true);
-<<<<<<< HEAD
   const [editingCell, setEditingCell] = useState(null); // { key, dayIdx, hour }
   // ناوبری هفته: 0 = هفته جاری، 1 = بعدی، -1 = قبلی
   const [weekOffset, setWeekOffset] = useState(0);
@@ -181,56 +132,23 @@ const WeeklyView = () => {
     } catch (err) {
       console.error('fetchSchedule error:', err);
       // داده‌ی هفته‌ی قبلی دست‌نخورده می‌ماند تا جدول فرو نریزد / خالی نشود
-=======
-  // FIX: جایگزین hoveredCell + prompt() با editingCell state
-  const [editingCell, setEditingCell] = useState(null); // { key, day, hour }
-  const [hoveredCell, setHoveredCell] = useState(null);
-  const saveTimerRef = useRef(null);
-
-  const days = ['شنبه', 'یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنجشنبه', 'جمعه'];
-  const hours = Array.from({ length: 17 }, (_, i) => i + 7);
-  const formatHour = (hour) => `${hour.toString().padStart(2, '0')}:00`;
-
-  // ── بارگذاری از بک‌اند ─────────────────────────────────────────────────────
-  const fetchSchedule = useCallback(async () => {
-    try {
-      const res = await fetch(`${API_BASE}/api/weekly/schedule`);
-      if (!res.ok) throw new Error('خطا در دریافت برنامه هفتگی');
-      const data = await res.json();
-      setTasks(data.schedule || {});
-    } catch (err) {
-      console.error('fetchSchedule error:', err);
-      setTasks({});
->>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
     } finally {
       setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-<<<<<<< HEAD
     fetchSchedule(weekOffset);
     return () => {
       if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     };
   }, [fetchSchedule, weekOffset]);
-=======
-    fetchSchedule();
-    return () => {
-      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
-    };
-  }, [fetchSchedule]);
->>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
 
   const scheduledSave = useCallback((newTasks) => {
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     saveTimerRef.current = setTimeout(async () => {
       try {
-<<<<<<< HEAD
         await apiFetch(`/api/weekly/schedule?week_offset=${weekOffset}`, {
-=======
-        await fetch(`${API_BASE}/api/weekly/schedule`, {
->>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ schedule: newTasks }),
@@ -239,7 +157,6 @@ const WeeklyView = () => {
         console.error('saveSchedule error:', err);
       }
     }, 800);
-<<<<<<< HEAD
   }, [weekOffset]);
 
   // ── کلیدهای مخزن یکپارچه: «YYYY-MM-DD|HH» با مقدار {text, completed} ─────
@@ -253,25 +170,13 @@ const WeeklyView = () => {
 
   const handleCellClick = (key, dayIdx, hour) => {
     setEditingCell({ key, dayIdx, hour });
-=======
-  }, []);
-
-  // FIX: کلیک باز می‌کنه editor رو (نه prompt)
-  const handleCellClick = (day, hour) => {
-    const key = `${day}-${hour}`;
-    setEditingCell({ key, day, hour });
->>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
   };
 
   const handleSaveCell = (key, text) => {
     setEditingCell(null);
     if (!text) return;
-<<<<<<< HEAD
     const prev = tasks[key];
     const newTasks = { ...tasks, [key]: { ...(prev || {}), text, completed: !!prev?.completed } };
-=======
-    const newTasks = { ...tasks, [key]: text };
->>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
     setTasks(newTasks);
     scheduledSave(newTasks);
   };
@@ -280,15 +185,8 @@ const WeeklyView = () => {
     setEditingCell(null);
   };
 
-<<<<<<< HEAD
   const handleCellRightClick = (e, key) => {
     e.preventDefault();
-=======
-  // FIX: راست‌کلیک حذف (همراه با تایید inline به جای window.confirm)
-  const handleCellRightClick = (e, day, hour) => {
-    e.preventDefault();
-    const key = `${day}-${hour}`;
->>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
     if (!tasks[key]) return;
     const newTasks = { ...tasks };
     delete newTasks[key];
@@ -296,7 +194,6 @@ const WeeklyView = () => {
     scheduledSave(newTasks);
   };
 
-<<<<<<< HEAD
   // برچسب کانتکست مودال: «دوشنبه ۲۷ مرداد • ۱۰:00»
   const editorContext = editingCell
     ? `${DAYS[editingCell.dayIdx]} ${faDayMonth(parseISODate(dayISOs[editingCell.dayIdx]))} • ${formatHour(editingCell.hour)}`
@@ -402,36 +299,12 @@ const WeeklyView = () => {
             <thead className="sticky top-0 z-20">
               <tr>
                 <th className="sticky right-0 bg-zinc-950 text-white/60 p-2 sm:p-3 border border-zinc-800 z-30 font-normal text-[11px] sm:text-xs text-right whitespace-nowrap">
-=======
-  if (loading) {
-    return (
-      <div className="p-6 h-full flex items-center justify-center">
-        <div className="text-slate-400 text-sm">در حال بارگذاری برنامه هفتگی...</div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="p-6 h-full flex flex-col">
-      <div className="bg-white rounded-2xl shadow-lg p-4 flex-1 flex flex-col overflow-hidden">
-        <h3 className="text-lg font-bold text-slate-700 mb-4">برنامه هفتگی</h3>
-
-        <div className="flex-1 overflow-auto scrollbar-thin scrollbar-thumb-purple-400 scrollbar-track-slate-200">
-          <table className="w-full border-collapse min-w-max">
-            <thead className="sticky top-0 z-20">
-              <tr>
-                <th className="sticky right-0 bg-gradient-to-br from-purple-600 to-blue-600 text-white p-3 border border-slate-200 rounded-tr-xl z-30 min-w-[100px]">
->>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
                   روز / ساعت
                 </th>
                 {hours.map((hour) => (
                   <th
                     key={hour}
-<<<<<<< HEAD
                     className="bg-zinc-950 text-white/55 p-2 sm:p-3 border border-zinc-800 text-[11px] sm:text-xs font-normal whitespace-nowrap tabular-nums overflow-hidden text-ellipsis"
-=======
-                    className="bg-gradient-to-br from-purple-500 to-blue-500 text-white p-3 border border-slate-200 min-w-[120px] text-sm font-semibold whitespace-nowrap"
->>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
                   >
                     {formatHour(hour)}
                   </th>
@@ -439,7 +312,6 @@ const WeeklyView = () => {
               </tr>
             </thead>
             <tbody>
-<<<<<<< HEAD
               {DAYS.map((day, dayIdx) => {
                 const cellISO = dayISOs[dayIdx];
                 const isTodayRow = cellISO === todayISO;
@@ -513,68 +385,10 @@ const WeeklyView = () => {
                   </tr>
                 );
               })}
-=======
-              {days.map((day, dayIndex) => (
-                <tr key={day}>
-                  <td
-                    className={`sticky right-0 bg-gradient-to-l from-indigo-500 to-purple-500 text-white font-bold p-3 border border-slate-200 z-10 ${
-                      dayIndex === days.length - 1 ? 'rounded-br-xl' : ''
-                    }`}
-                  >
-                    {day}
-                  </td>
-                  {hours.map((hour) => {
-                    const key = `${day}-${hour}`;
-                    const hasTask = !!tasks[key];
-                    const isEditing = editingCell?.key === key;
-                    const isHovered = hoveredCell === key;
-
-                    return (
-                      <td
-                        key={hour}
-                        onClick={() => !isEditing && handleCellClick(day, hour)}
-                        onContextMenu={(e) => handleCellRightClick(e, day, hour)}
-                        onMouseEnter={() => setHoveredCell(key)}
-                        onMouseLeave={() => setHoveredCell(null)}
-                        className={`p-1 border border-slate-200 cursor-pointer transition-all h-[70px] relative ${
-                          hasTask
-                            ? 'bg-gradient-to-br from-purple-50 to-blue-50'
-                            : isHovered
-                            ? 'bg-slate-100'
-                            : 'bg-white hover:bg-slate-50'
-                        }`}
-                      >
-                        <AnimatePresence mode="wait">
-                          {isEditing ? (
-                            <CellEditor
-                              key="editor"
-                              initialValue={tasks[key] || ''}
-                              onSave={(text) => handleSaveCell(key, text)}
-                              onCancel={handleCancelCell}
-                            />
-                          ) : hasTask ? (
-                            <motion.div
-                              key="task"
-                              initial={{ scale: 0.8, opacity: 0 }}
-                              animate={{ scale: 1, opacity: 1 }}
-                              exit={{ scale: 0.8, opacity: 0 }}
-                              className="bg-gradient-to-br from-purple-500 to-blue-500 text-white text-xs p-2 rounded-lg shadow-md h-full flex items-center justify-center text-center leading-relaxed"
-                            >
-                              {tasks[key]}
-                            </motion.div>
-                          ) : null}
-                        </AnimatePresence>
-                      </td>
-                    );
-                  })}
-                </tr>
-              ))}
->>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
             </tbody>
           </table>
         </div>
 
-<<<<<<< HEAD
         <p className="hidden sm:block text-[11px] text-white/30 mt-3 text-center">
           برای افزودن/ویرایش کلیک کنید • برای حذف راست‌کلیک کنید
         </p>
@@ -592,12 +406,6 @@ const WeeklyView = () => {
           />
         )}
       </AnimatePresence>
-=======
-        <p className="text-xs text-slate-500 mt-3 text-center">
-          برای افزودن/ویرایش کلیک کنید • برای حذف راست‌کلیک کنید
-        </p>
-      </div>
->>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
     </div>
   );
 };

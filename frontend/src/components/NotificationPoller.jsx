@@ -5,15 +5,9 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-<<<<<<< HEAD
 import { apiFetch } from '../lib/apiClient';
 import { Bell, X } from 'lucide-react';
 
-=======
-import { Bell, X } from 'lucide-react';
-
-const API_BASE = 'http://localhost:8000';
->>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
 const POLL_INTERVAL_MS = 30_000; // هر 30 ثانیه
 
 const NotificationToast = ({ notif, onDismiss }) => (
@@ -22,7 +16,6 @@ const NotificationToast = ({ notif, onDismiss }) => (
     animate={{ x: 0, opacity: 1 }}
     exit={{ x: 80, opacity: 0 }}
     transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-<<<<<<< HEAD
     className="flex items-start gap-3 bg-[#0a0a0b] border border-white/25 p-4 max-w-xs w-full"
   >
     <div className="mt-0.5 text-white flex-shrink-0">
@@ -32,26 +25,11 @@ const NotificationToast = ({ notif, onDismiss }) => (
       <p className="text-sm text-white leading-snug">{notif.title}</p>
       {notif.message && (
         <p className="text-xs text-white/45 mt-1 leading-relaxed">{notif.message}</p>
-=======
-    className="flex items-start gap-3 bg-white border border-purple-200 shadow-xl rounded-2xl p-4 max-w-xs w-full"
-  >
-    <div className="mt-0.5 p-2 rounded-xl bg-purple-100 text-purple-600 flex-shrink-0">
-      <Bell size={16} />
-    </div>
-    <div className="flex-1 min-w-0">
-      <p className="text-sm font-semibold text-slate-700 leading-snug">{notif.title}</p>
-      {notif.message && (
-        <p className="text-xs text-slate-500 mt-1 leading-relaxed">{notif.message}</p>
->>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
       )}
     </div>
     <button
       onClick={() => onDismiss(notif.id)}
-<<<<<<< HEAD
       className="flex-shrink-0 text-white/30 hover:text-white transition-colors"
-=======
-      className="flex-shrink-0 text-slate-300 hover:text-slate-500 transition-colors"
->>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
     >
       <X size={16} />
     </button>
@@ -65,11 +43,7 @@ const NotificationPoller = () => {
 
   const pollNotifications = async () => {
     try {
-<<<<<<< HEAD
       const res = await apiFetch(`/api/notifications/pending`);
-=======
-      const res = await fetch(`${API_BASE}/api/notifications/pending`);
->>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
       if (!res.ok) return;
       const data = await res.json();
       const fresh = (data.notifications || []).filter(
@@ -93,11 +67,7 @@ const NotificationPoller = () => {
   const dismiss = async (id) => {
     setQueue((prev) => prev.filter((n) => n.id !== id));
     try {
-<<<<<<< HEAD
       await apiFetch(`/api/notifications/${id}/dismiss`, { method: 'POST' });
-=======
-      await fetch(`${API_BASE}/api/notifications/${id}/dismiss`, { method: 'POST' });
->>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
     } catch {
       // silent
     }

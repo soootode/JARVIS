@@ -1,7 +1,6 @@
 fastapi==0.115.0
 uvicorn==0.32.0
 pydantic==2.9.0
-<<<<<<< HEAD
 pydantic[email]==2.9.0
 
 # ── LLM client (Google Gemini via its OpenAI-compatible endpoint) ──
@@ -41,10 +40,3 @@ python-jose[cryptography]==3.3.0
 
 # ── Web Push notifications (used by push_service.py) ──
 pywebpush==2.0.1
-=======
-openai==1.54.0
-python-dotenv==1.0.1
-sqlalchemy==2.0.36
-psycopg2-binary==2.9.10
-apscheduler==3.10.4
->>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9

@@ -1,6 +1,5 @@
 // src/components/ChatView.jsx
 import { useState, useRef, useEffect } from 'react';
-<<<<<<< HEAD
 import { Send, CalendarCheck, AlertTriangle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { apiFetch } from '../lib/apiClient';
@@ -48,15 +47,6 @@ const PlannerNoteCard = ({ items }) => (
 const ChatView = () => {
   const [messages, setMessages] = useState([]);
   const [historyLoading, setHistoryLoading] = useState(true);
-=======
-import { Send } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
-
-const ChatView = () => {
-  const [messages, setMessages] = useState([
-    { id: 1, sender: 'jarvis', text: 'سلام! من جارویس هستم. چطور می‌تونم کمکتون کنم؟', timestamp: new Date() }
-  ]);
->>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
   const [inputValue, setInputValue] = useState('');
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef(null);
@@ -66,7 +56,6 @@ const ChatView = () => {
   };
 
   useEffect(() => {
-<<<<<<< HEAD
     (async () => {
       try {
         const res = await apiFetch('/api/conversation-history?limit=100');
@@ -89,8 +78,6 @@ const ChatView = () => {
   }, []);
 
   useEffect(() => {
-=======
->>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
     scrollToBottom();
   }, [messages]);
 
@@ -98,33 +85,17 @@ const ChatView = () => {
     if (!inputValue.trim() || loading) return;
 
     const userInput = inputValue.trim();
-<<<<<<< HEAD
     setMessages(prev => [...prev, { id: Date.now(), sender: 'user', text: userInput, timestamp: new Date() }]);
-=======
-    const newMessage = {
-      id: Date.now(),
-      sender: 'user',
-      text: userInput,
-      timestamp: new Date()
-    };
-
-    setMessages(prev => [...prev, newMessage]);
->>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
     setInputValue('');
     setLoading(true);
 
     try {
-<<<<<<< HEAD
       const response = await apiFetch('/api/chat', {
-=======
-      const response = await fetch('http://localhost:8000/api/chat', {
->>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: userInput })
       });
 
-<<<<<<< HEAD
       if (!response.ok) {
         let detail = null;
         try {
@@ -139,18 +110,6 @@ const ChatView = () => {
         id: Date.now() + 1,
         sender: 'jarvis',
         text: data.response || 'پاسخی دریافت نشد',
-=======
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-
-      const data = await response.json();
-      // FIX: removed dead-code branch that was patching an old backend bug
-      const aiText = data.response || 'پاسخی دریافت نشد';
-
-      setMessages(prev => [...prev, {
-        id: Date.now() + 1,
-        sender: 'jarvis',
-        text: aiText,
->>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
         timestamp: new Date()
       }]);
     } catch (error) {
@@ -158,12 +117,8 @@ const ChatView = () => {
       setMessages(prev => [...prev, {
         id: Date.now() + 1,
         sender: 'jarvis',
-<<<<<<< HEAD
         text: error.message && !error.message.startsWith('HTTP') ? error.message : 'متأسفم، خطایی رخ داد. لطفاً دوباره تلاش کنید.',
         isError: true,
-=======
-        text: 'متأسفم، خطایی رخ داد. لطفاً دوباره تلاش کنید.',
->>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
         timestamp: new Date()
       }]);
     } finally {
@@ -171,7 +126,6 @@ const ChatView = () => {
     }
   };
 
-<<<<<<< HEAD
   if (historyLoading) {
     return (
       <div className="flex flex-col h-full bg-zinc-950 items-center justify-center">
@@ -232,33 +186,6 @@ const ChatView = () => {
             );
           })}
         </AnimatePresence>
-=======
-  return (
-    <div className="flex flex-col h-full">
-      {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto p-6 space-y-4 scrollbar-hide">
-        {messages.map((msg) => (
-          <motion.div
-            key={msg.id}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
-          >
-            <div
-              className={`max-w-[75%] px-5 py-3 rounded-2xl shadow-md ${
-                msg.sender === 'user'
-                  ? 'bg-gradient-to-br from-purple-500 to-blue-500 text-white'
-                  : 'bg-white text-slate-700'
-              }`}
-            >
-              <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.text}</p>
-              <p className={`text-xs mt-1 ${msg.sender === 'user' ? 'text-purple-100' : 'text-slate-400'}`}>
-                {msg.timestamp.toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' })}
-              </p>
-            </div>
-          </motion.div>
-        ))}
->>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
 
         {loading && (
           <motion.div
@@ -266,20 +193,12 @@ const ChatView = () => {
             animate={{ opacity: 1 }}
             className="flex justify-start"
           >
-<<<<<<< HEAD
             <div className="bg-zinc-900 border border-zinc-700/70 rounded-xl px-5 py-3.5">
-=======
-            <div className="bg-white text-slate-700 px-5 py-3 rounded-2xl shadow-md">
->>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
               <div className="flex gap-2">
                 {[0, 150, 300].map((delay) => (
                   <div
                     key={delay}
-<<<<<<< HEAD
                     className="w-1.5 h-1.5 bg-white/60 rounded-full animate-bounce"
-=======
-                    className="w-2 h-2 bg-purple-500 rounded-full animate-bounce"
->>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
                     style={{ animationDelay: `${delay}ms` }}
                   />
                 ))}
@@ -291,11 +210,7 @@ const ChatView = () => {
       </div>
 
       {/* Input Area */}
-<<<<<<< HEAD
       <div className="p-3 sm:p-4 border-t border-zinc-800">
-=======
-      <div className="p-4 bg-white/50 backdrop-blur-sm border-t border-slate-200">
->>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
         <div className="flex gap-3">
           <input
             type="text"
@@ -304,17 +219,12 @@ const ChatView = () => {
             onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
             placeholder="پیام خود را بنویسید..."
             disabled={loading}
-<<<<<<< HEAD
             maxLength={4000}
             className="flex-1 min-w-0 bg-transparent border-0 border-b border-white/25 focus:border-white/70 outline-none text-sm sm:text-base text-white placeholder-white/30 py-2 px-1 transition-colors disabled:opacity-50"
-=======
-            className="flex-1 px-4 py-3 rounded-xl bg-white text-slate-700 placeholder-slate-400 border border-slate-300 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all disabled:opacity-50"
->>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
           />
           <button
             onClick={handleSendMessage}
             disabled={loading || !inputValue.trim()}
-<<<<<<< HEAD
             className="relative px-5 sm:px-6 py-2.5 group disabled:opacity-40 disabled:cursor-not-allowed active:scale-[0.98] transition-transform flex-shrink-0"
           >
             <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 44" preserveAspectRatio="none" style={{ overflow: 'visible' }}>
@@ -335,12 +245,6 @@ const ChatView = () => {
               )}
               ارسال
             </span>
-=======
-            className="px-5 py-3 bg-gradient-to-br from-purple-500 to-blue-500 text-white rounded-xl font-semibold hover:shadow-lg transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <Send size={20} />
-            <span>ارسال</span>
->>>>>>> 9ff17d3b7c338f01fb187fca8733efaa93c538b9
           </button>
         </div>
       </div>
